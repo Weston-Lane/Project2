@@ -1,0 +1,17 @@
+{
+    "typeAcquisition": {
+    "include": ["three"]
+  },
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "target": "ESNext",
+    "baseUrl": ".",
+    "paths": {
+      "three": ["Vendor/ThreeJS/three.module.js"],
+      "three/*": ["Vendor/ThreeJS/*"]
+    },
+    "checkJs": true
+  },
+  "exclude": ["node_modules", "**/node_modules/*"]
+}
