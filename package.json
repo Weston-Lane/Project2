@@ -1,0 +1,24 @@
+{
+  "name": "project2",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Weston-Lane/Project2#readme",
+  "bugs": {
+    "url": "https://github.com/Weston-Lane/Project2/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Weston-Lane/Project2.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cannon": "^0.6.2",
+    "three": "^0.183.2"
+  }
+}
