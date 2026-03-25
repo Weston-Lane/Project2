@@ -14,6 +14,11 @@ export class Engine
 
     init()
     {
+
+    }
+
+    add(obj)
+    {
         
     }
 
