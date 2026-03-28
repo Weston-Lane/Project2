@@ -1,43 +1,62 @@
 import * as THREE from 'three';
+import * as CANNON from 'cannon-es'
 import {Engine} from './Core/Engine.js'
-
-
+import { GameObject } from './Core/GameObject.js';
 const engine = new Engine();
 engine.Init();
 
+//create cube
 
+class Cube extends GameObject{
+    
+    constructor()
+    {
+        
+        const geo = new THREE.BoxGeometry(1,1,1,1);
+        const mat = new THREE.MeshLambertMaterial({color: 0x00ff00});
+        const mesh = new THREE.Mesh(geo, mat);
 
-// 1. The Scene (The Container)
-// const scene = new THREE.Scene();
+        const shape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
+        const body = new CANNON.Body({
+            mass: 1, // > 0 means dynamic (affected by gravity)
+            shape: shape,
+            position: new CANNON.Vec3(0, 5, 0) // Start 5 units in the air
+        });
 
-// // 2. The Camera (The Viewpoint)
-// const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-// camera.position.z = 5;
+        super(mesh,body);
+    }
 
-// // 3. The Renderer (The "Painter")
-// const renderer = new THREE.WebGLRenderer({ antialias: true });
-// renderer.setSize(window.innerWidth, window.innerHeight);
-// document.body.appendChild(renderer.domElement);
+    OnUpdate()
+    {
+        super.OnUpdate();
 
-// // 4. The Object (Geometry + Material = Mesh)
-// const geometry = new THREE.BoxGeometry(1, 1, 1);
-// const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-// const cube = new THREE.Mesh(geometry, material);
-// scene.add(cube);
+        this.body.angularVelocity.set(1,1,0);
+        if(this.body.position.y < -3)
+        { 
+            this.body.position.y = 10;
+            this.body.velocity.setZero();
+        }
+    }
+}
 
-// // 5. Lighting (Essential for MeshStandardMaterial)
-// const light = new THREE.DirectionalLight(0xffffff, 1);
-// light.position.set(1, 1, 2);
-// scene.add(light);
+const cube = new Cube();
 
-// // 6. Animation Loop
-// function animate() {
-//     requestAnimationFrame(animate);
-//     cube.rotation.x += 0.01;
-//     cube.rotation.y += 0.01;
-//     renderer.render(scene, camera);
-// }
-// animate();
+engine.AddObj(cube);
+engine.camera.position.z = 5;
 
+engine.scene.background = new THREE.Color(0x1a1a2e);
+engine.scene.add(new THREE.AmbientLight(0x404040, 2));
+const light = new THREE.PointLight(0xffffff, 100);
+light.position.set(0, 5, 5);
+light.castShadow = true;
 
+light.shadow.camera.left = -20;
+light.shadow.camera.right = 20;
+light.shadow.camera.top = 20;
+light.shadow.camera.bottom = -20;
+light.shadow.camera.near = 0.5;
+light.shadow.camera.far = 50;
+light.shadow.mapSize.width = 1024;
+light.shadow.mapSize.height = 1024;
 
+engine.scene.add(light);
