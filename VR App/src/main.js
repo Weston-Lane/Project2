@@ -70,6 +70,8 @@ class Hand extends GameObject
     }
 }
 
+
+
 engine.Init();
 const cube = new Cube();
 const hand = new Hand();
