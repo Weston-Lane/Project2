@@ -1,4 +1,4 @@
-import {Engine} from './Engine'
+import {engine} from './Engine'
 
 /**
  * Every GameObject child class will need to pass its mesh and phys body into a super()
@@ -16,6 +16,8 @@ export class GameObject
         this.mesh = mesh;
         /** @type {CANNON.Body} */
         this.body = body;
+
+        engine.AddObj(this);
     }
 
     OnUpdate()
