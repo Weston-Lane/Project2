@@ -3,6 +3,7 @@ import { VRButton } from 'three/addons/webxr/VRButton.js';
 import * as CANNON from 'cannon-es';
 import CannonDebuger from 'cannon-es-debugger';
 import {Input} from './Input'
+import * as AssetLoader from '../ModelLoads.js'
 
 const FOV = 75;
 const N_PLANE = 0.1;
@@ -51,10 +52,12 @@ export class Engine {
     /**
      * Appends the renderer to the DOM, enables WebXR, and begins the main execution loop.
      */
-    Init() {
+    async Init() {
         if(this.initialized)
             return;
         this.initialized = true;
+
+        await AssetLoader.LoadAssets();
 
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
@@ -84,7 +87,10 @@ export class Engine {
         });
 
         console.log("Engine Initialized");
+
+        
     }
+    
 
     /**
      * Dispatches the update cycle to all registered objects.
@@ -111,6 +117,7 @@ export class Engine {
         this.physicsWorld.addBody(obj.body);
         this.updatableObjs.push(obj);
     }
+
 
     DebugButtonCreate()
     {
