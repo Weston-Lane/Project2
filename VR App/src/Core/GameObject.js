@@ -13,9 +13,14 @@ export class GameObject
      */
     constructor(mesh, body)
     {
+        this.group = new THREE.Group();
         /** @type {THREE.Mesh} */
         this.mesh = mesh;
         /** @type {CANNON.Body} */
+        this.body;
+
+        this.group.add(this.mesh);
+
         if(body)
             { this.body = body; }
         else
@@ -26,21 +31,22 @@ export class GameObject
             const center = new THREE.Vector3();
             boundingBox.getCenter(center);
 
+            this.mesh.position.set(-center.x,-center.y,-center.z);
+
             const shape = new CANNON.Box(new CANNON.Vec3(size.x/2, size.y/2, size.z/2));
             this.body = new CANNON.Body({
                 mass: 1,
                 type: CANNON.Body.DYNAMIC,
-                position: new CANNON.Vec3(-1,1,-1)
+                position: new CANNON.Vec3(0,0,0),
+                shape: shape
             });
 
-            this.body.addShape(
-                shape,
-                new CANNON.Vec3(center.x, center.y, center.z)
-            )
+            
         }
 
         //this is a weird JS injection pattern. Allows for OnCollision(event) calls to access class methods
-        //Now the CANNON body has a reference to the GameObject        
+        //Now the CANNON body has a reference to the GameObject
+        /** @type {GameObject} */        
         this.body.gameObject = this;
 
         this.body.addEventListener('collide', this.OnCollision.bind(this));
@@ -50,8 +56,8 @@ export class GameObject
 
     OnUpdate()
     {
-        this.mesh.position.copy(this.body.position);
-        this.mesh.quaternion.copy(this.body.quaternion);
+        this.group.position.copy(this.body.position);
+        this.group.quaternion.copy(this.body.quaternion);
     }
 
     /**

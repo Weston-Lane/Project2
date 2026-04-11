@@ -32,7 +32,9 @@ export class Engine {
         /** @type {CANNON.World} The physics simulation environment. */
         this.physicsWorld = new CANNON.World({
             gravity: new CANNON.Vec3(0, GRAVITY, 0),
+            
         });
+        this.standardPhysicsMat;
 
         /** @type {Array<Object>} Collection of game objects requiring per-frame updates. */
         this.updatableObjs = [];
@@ -46,6 +48,7 @@ export class Engine {
         this.input = new Input(this.renderer);
 
         this.debugEnabled = false;
+
         
     }
 
@@ -86,8 +89,21 @@ export class Engine {
 
         });
 
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.load('../../public/clearSky.png', (texture) => {
+            
+            // Tell Three.js to wrap this image in a sphere around the camera
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            
+            // Set it as the visual background
+            this.scene.background = texture;
+            
+            // PRO-TIP: Set it as the environment to make shiny objects reflect the sky!
+            this.scene.environment = texture; 
+        });
         console.log("Engine Initialized");
 
+        
         
     }
     
@@ -113,7 +129,7 @@ export class Engine {
      * @param {Object} obj - The entity to add. Must expose `.mesh`, `.body`, and `.OnUpdate()`.
      */
     AddObj(obj) {
-        this.scene.add(obj.mesh);
+        this.scene.add(obj.group);
         this.physicsWorld.addBody(obj.body);
         this.updatableObjs.push(obj);
     }
