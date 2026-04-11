@@ -36,6 +36,9 @@ export class Engine {
         });
         this.standardPhysicsMat;
 
+        // Increase iterations. 50 is a standard baseline for stable stacking in games.
+        this.physicsWorld.solver.iterations = 40;
+
         /** @type {Array<Object>} Collection of game objects requiring per-frame updates. */
         this.updatableObjs = [];
         
@@ -49,7 +52,9 @@ export class Engine {
 
         this.debugEnabled = false;
 
-        
+
+
+
     }
 
     /**
@@ -89,6 +94,7 @@ export class Engine {
 
         });
 
+        //load skybox
         const textureLoader = new THREE.TextureLoader();
         textureLoader.load('../../public/clearSky.png', (texture) => {
             
@@ -96,10 +102,10 @@ export class Engine {
             this.scene.background = texture;
             this.scene.environment = texture; 
         });
+
+
         console.log("Engine Initialized");
 
-        
-        
     }
     
 

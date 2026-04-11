@@ -9,16 +9,16 @@ export class Cube extends GameObject{
     
     constructor()
     {
-
-        const geo = new THREE.BoxGeometry(1,1,1,1);
-        const mat = new THREE.MeshLambertMaterial({color: 0x0000ff});
+        const dim = [5,1,1,1];
+        const geo = new THREE.BoxGeometry(dim[0],dim[1],dim[2],dim[3]);
+        const mat = new THREE.MeshLambertMaterial({color: 0x0077ff});
         const mesh = new THREE.Mesh(geo, mat);
 
-        const shape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
+        const shape = new CANNON.Box(new CANNON.Vec3(dim[0]/2, dim[1]/2, dim[3]/2));
         const body = new CANNON.Body({
-            mass: 1, // > 0 means dynamic (affected by gravity)
+            mass: 10, // > 0 means dynamic (affected by gravity)
             shape: shape,
-            position: new CANNON.Vec3(-1, 5, -1), // Start 5 units in the air
+            position: new CANNON.Vec3(0, 1, -7),
             
         });
 
@@ -61,7 +61,6 @@ export class Cube extends GameObject{
     AddTarget(obj)
     {
         this.targetObj = obj;
-        
     }
 
     OnCollision(event)
@@ -75,7 +74,7 @@ export class Plane extends GameObject
     constructor()
     {
         const geo = new THREE.PlaneGeometry(50,50);
-        const mat = new THREE.MeshLambertMaterial({color: 0x0000af});
+        const mat = new THREE.MeshLambertMaterial({color: 0x999999});
         const mesh = new THREE.Mesh(geo, mat);
 
         const shape = new CANNON.Plane();
@@ -83,7 +82,7 @@ export class Plane extends GameObject
             type: CANNON.BODY_TYPES.STATIC,
             shape: shape,
             position: new CANNON.Vec3(0, 0, 0), 
-            material: engine.genericMaterial
+            
         });
 
         body.quaternion.setFromEuler(-Math.PI/2,0,0); //rotate to xz plane
@@ -133,6 +132,8 @@ export class Car extends GameObject
             
         const mesh = AssetLoader.AssetCache.models['vehicle'].clone();
         super(mesh, undefined);
+        this.body.position.set(0,1,-3);
+        this.body.quaternion.setFromEuler(0,-90,0);
     }
 
     OnUpdate()
@@ -154,8 +155,9 @@ export class Pipe extends GameObject
     {
             
         const mesh = AssetLoader.AssetCache.models['pipe'].clone();
-
         super(mesh, undefined);
+
+        this.body.position.set(0,3,-7);
         
     }
 
@@ -171,11 +173,40 @@ export class Pipe extends GameObject
     }
 }
 
+let isPressed = false;
+window.addEventListener('keydown', (event) =>{
+    if(event.key.toLowerCase() == 'e') isPressed = true;
+});
+window.addEventListener('keyup', (event) => {
+    if (event.key.toLowerCase() === 'e') isPressed = false;
+});
+
+export class Target extends GameObject
+{
+    constructor()
+    {
+        const mesh = AssetLoader.AssetCache.models['target'].clone();
+        super(mesh,undefined);
+
+        this.body.type = CANNON.Body.STATIC;
+        this.body.mass = 0;
+        this.body.position.set(0,3,-6);
+        const rads = THREE.MathUtils.degToRad(90);
+        this.body.quaternion.setFromEuler(rads,0,0);
+        
+    }
+
+    OnUpdate()
+    {
+        super.OnUpdate();
+    }
+}
+
 export function LoadGame()
 {
     new Cube();
     new Car();
     new Hand();
-    new Pipe();
     new Plane();
+    new Target();
 }

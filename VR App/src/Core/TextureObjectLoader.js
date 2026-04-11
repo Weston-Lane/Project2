@@ -1,13 +1,31 @@
 import * as THREE from 'three';
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'; 
+import { OBJLoader } from 'three/examples/jsm/Addons.js';
 
 export const AssetCache = {
     models: {}
 }
 
-export async function LoadTextureObject(glbPath, texturePaths) {
+//GLBs have textures in the binary
+export async function LoadTextureObjectGLB(glbPath) {
     const gltfLoader = new GLTFLoader();
+    const gltfData = await gltfLoader.loadAsync(glbPath);
+    const object = gltfData.scene;
+
+    object.traverse((child) => {
+        if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+        }
+    });
+
+    
+    return object;
+}
+
+export async function LoadTextureObjectOBJ(objPath, texturePaths) {
+    const objLoader = new OBJLoader();
     const textureLoader = new THREE.TextureLoader();
 
     const loadTexture = (path) => {
@@ -17,19 +35,15 @@ export async function LoadTextureObject(glbPath, texturePaths) {
         });
     };
 
-    const [gltfData, diffuseMap, normalMap, roughnessMap] = await Promise.all([
-        new Promise((resolve, reject) => gltfLoader.load(glbPath, resolve, undefined, reject)),
+    const [objGroup, diffuseMap, normalMap, roughnessMap] = await Promise.all([
+        new Promise((resolve, reject) => objLoader.load(objPath, resolve, undefined, reject)),
         loadTexture(texturePaths.diffuse),
         loadTexture(texturePaths.normal),
         loadTexture(texturePaths.roughness)
     ]);
 
-    const object = gltfData.scene; 
-
-    if (diffuseMap)
-    {
+    if (diffuseMap) {
         diffuseMap.colorSpace = THREE.SRGBColorSpace;
-        diffuseMap.flipY = false;
     }
 
     const material = new THREE.MeshStandardMaterial({
@@ -40,7 +54,7 @@ export async function LoadTextureObject(glbPath, texturePaths) {
         metalness: 0.1 
     });
 
-    object.traverse((child) => {
+    objGroup.traverse((child) => {
         if (child.isMesh) {
             child.material = material;
             child.castShadow = true;
@@ -48,7 +62,6 @@ export async function LoadTextureObject(glbPath, texturePaths) {
         }
     });
 
-    
-    return object; // Returns the THREE.Group
+    return objGroup;
 }
 

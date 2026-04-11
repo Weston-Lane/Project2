@@ -58,6 +58,8 @@ export class GameObject
     {
         this.group.position.copy(this.body.position);
         this.group.quaternion.copy(this.body.quaternion);
+
+        
     }
 
     /**

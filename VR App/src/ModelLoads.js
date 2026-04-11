@@ -5,22 +5,14 @@ import * as AssetLoader from './Core/TextureObjectLoader'
 export async function LoadAssets()
 {
     const CAR_MODEL = '../public/models/vehicle.glb'
-    const CAR_DIFFUSE = '../public/models/Textures/colormap.png'
-    AssetLoader.AssetCache.models['vehicle'] = await AssetLoader.LoadTextureObject(
-        CAR_MODEL, 
-        { 
-            diffuse: CAR_DIFFUSE,
-        }
-    );
+    AssetLoader.AssetCache.models['vehicle'] = 
+        await AssetLoader.LoadTextureObjectGLB(CAR_MODEL);
 
     const PIPE_MODEL = '../public/models/pipe.glb';
-    const PIPE_DIFFUSE = '../public/models/Textures/colormap.png';
-    AssetLoader.AssetCache.models['pipe'] = await AssetLoader.LoadTextureObject(
-        PIPE_MODEL, 
-        { 
-            diffuse: PIPE_DIFFUSE,
-        }
-    );
+    AssetLoader.AssetCache.models['pipe'] = 
+        await AssetLoader.LoadTextureObjectGLB(PIPE_MODEL);
 
-
+    const TARGET_MODEL = '../public/models/Target.glb';
+    AssetLoader.AssetCache.models['target'] = 
+        await AssetLoader.LoadTextureObjectGLB(TARGET_MODEL);
 }
