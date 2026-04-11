@@ -3,7 +3,7 @@ import * as CANNON from 'cannon-es'
 import {engine} from './Core/Engine.js'
 import { GameObject } from './Core/GameObject.js';
 import * as AssetLoader from './Core/TextureObjectLoader.js';
-import {LoadGame} from './Objects.js'
+import {LoadGame} from './Objects/Objects.js'
 
 
 

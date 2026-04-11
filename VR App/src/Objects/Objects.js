@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es'
-import {engine} from './Core/Engine.js'
-import { GameObject } from './Core/GameObject.js';
-import * as AssetLoader from './Core/TextureObjectLoader.js';
+import {engine} from '../Core/Engine.js'
+import { GameObject } from '../Core/GameObject.js';
+import * as AssetLoader from '../Core/TextureObjectLoader.js';
 
 
 export class Cube extends GameObject{
