@@ -92,13 +92,8 @@ export class Engine {
         const textureLoader = new THREE.TextureLoader();
         textureLoader.load('../../public/clearSky.png', (texture) => {
             
-            // Tell Three.js to wrap this image in a sphere around the camera
             texture.mapping = THREE.EquirectangularReflectionMapping;
-            
-            // Set it as the visual background
             this.scene.background = texture;
-            
-            // PRO-TIP: Set it as the environment to make shiny objects reflect the sky!
             this.scene.environment = texture; 
         });
         console.log("Engine Initialized");
