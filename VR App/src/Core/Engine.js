@@ -103,6 +103,15 @@ export class Engine {
             this.scene.environment = texture; 
         });
 
+        this.camera.position.z = 0;
+        this.camera.position.y = 2;
+
+        this.scene.add(new THREE.AmbientLight(0x404040, 2));
+        const light = new THREE.PointLight(0xffffff, 100);
+        light.position.set(-4, 3, 5);
+        light.castShadow = true;
+
+        this.scene.add(light);
 
         console.log("Engine Initialized");
 

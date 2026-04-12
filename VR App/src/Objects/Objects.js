@@ -173,14 +173,6 @@ export class Pipe extends GameObject
     }
 }
 
-let isPressed = false;
-window.addEventListener('keydown', (event) =>{
-    if(event.key.toLowerCase() == 'e') isPressed = true;
-});
-window.addEventListener('keyup', (event) => {
-    if (event.key.toLowerCase() === 'e') isPressed = false;
-});
-
 export class Target extends GameObject
 {
     constructor()
@@ -202,11 +194,78 @@ export class Target extends GameObject
     }
 }
 
+export class Projectile extends GameObject
+{
+    constructor()
+    {
+        const dim = [0.1,0.1,0.4,1];
+        const geo = new THREE.BoxGeometry(dim[0],dim[1],dim[2],dim[3]);
+        const mat = new THREE.MeshLambertMaterial({color: 0xff7700});
+        const mesh = new THREE.Mesh(geo, mat);
+
+        const shape = new CANNON.Box(new CANNON.Vec3(dim[0]/2, dim[1]/2, dim[3]/2));
+        const body = new CANNON.Body({
+            mass: 0, // > 0 means dynamic (affected by gravity)
+            shape: shape,
+            type: CANNON.Body.DYNAMIC,
+            position: new CANNON.Vec3(0, 5, -7),
+            
+        });
+
+        super(mesh, body);
+
+        this.target = null;
+        this.speed = 5;
+        
+    }
+
+    OnUpdate()
+    {
+        super.OnUpdate();   
+
+        if(this.target)
+        {
+            const tarDir = this.target.body.position.vsub(this.body.position);
+            tarDir.normalize();
+            this.body.position.addScaledVector(this.speed * engine.timer.getDelta(), 
+                                                tarDir, this.body.position);
+
+            this.body.quaternion.setFromVectors(new CANNON.Vec3(0,0,1),tarDir);
+        }
+    }
+
+    /**
+     * @param {GameObject} obj 
+     */
+    MakeTarget(obj)
+    {
+        this.target = obj
+    }
+
+    ReturnToPool()
+    {
+        
+    }
+
+    OnCollision(event)
+    {
+        super.OnCollision(event);
+        this.group.visible = false;
+        
+        setTimeout(() => {
+            engine.physicsWorld.removeBody(this.body);
+        }, 0);
+
+        console.log('hit target');
+    }
+}
+
 export function LoadGame()
 {
     new Cube();
-    new Car();
+    //new Car();
     new Hand();
     new Plane();
     new Target();
+    
 }

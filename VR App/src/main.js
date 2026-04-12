@@ -3,32 +3,20 @@ import * as CANNON from 'cannon-es'
 import {engine} from './Core/Engine.js'
 import { GameObject } from './Core/GameObject.js';
 import * as AssetLoader from './Core/TextureObjectLoader.js';
-import {LoadGame} from './Objects/Objects.js'
+import * as Objects from './Objects/Objects.js'
 
 
 
 
 
 await engine.Init();
+Objects.LoadGame();
 
-LoadGame();
-
-engine.camera.position.z = 0;
-engine.camera.position.y = 2;
+const projectile = new Objects.Projectile();
 
 
-engine.scene.add(new THREE.AmbientLight(0x404040, 2));
-const light = new THREE.PointLight(0xffffff, 100);
-light.position.set(-4, 3, 5);
-light.castShadow = true;
+const target = new Objects.Target();
+target.body.position.set(-2,1,-1);
 
-// light.shadow.camera.left = -20;
-// light.shadow.camera.right = 20;
-// light.shadow.camera.top = 20;
-// light.shadow.camera.bottom = -20;
-// light.shadow.camera.near = 0.5;
-// light.shadow.camera.far = 50;
-// light.shadow.mapSize.width = 1024;
-// light.shadow.mapSize.height = 1024;
+projectile.MakeTarget(target);
 
-engine.scene.add(light);
