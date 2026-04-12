@@ -11,7 +11,7 @@ export class Cube extends GameObject{
     {
         const dim = [5,1,1,1];
         const geo = new THREE.BoxGeometry(dim[0],dim[1],dim[2],dim[3]);
-        const mat = new THREE.MeshLambertMaterial({color: 0x0077ff});
+        const mat = new THREE.MeshLambertMaterial({color: 0x114411});
         const mesh = new THREE.Mesh(geo, mat);
 
         const shape = new CANNON.Box(new CANNON.Vec3(dim[0]/2, dim[1]/2, dim[3]/2));
@@ -66,6 +66,7 @@ export class Cube extends GameObject{
     OnCollision(event)
     {
         super.OnCollision(event);
+ 
     } 
 }
 
@@ -91,35 +92,106 @@ export class Plane extends GameObject
     }
 }
 
-export class Hand extends GameObject
+class UserProjectile extends GameObject
 {
     constructor()
     {
-        const geo = new THREE.BoxGeometry(0.1,0.1,0.2);
-        const mat = new THREE.MeshLambertMaterial({color: 0x00ff00});
+        const dim = [0.1,0.1,0.4,1];
+        const geo = new THREE.BoxGeometry(dim[0],dim[1],dim[2],dim[3]);
+        const mat = new THREE.MeshLambertMaterial({color: 0x0077ff});
         const mesh = new THREE.Mesh(geo, mat);
 
-        const shape = new CANNON.Box(new CANNON.Vec3(0.1,0.05,0.1));
+        const shape = new CANNON.Box(new CANNON.Vec3(dim[0]/2, dim[1]/2, dim[3]/2));
         const body = new CANNON.Body({
-            mass: 0,
-            type: CANNON.Body.KINEMATIC,
+            mass: 0, // > 0 means dynamic (affected by gravity)
             shape: shape,
-            material: new CANNON.ContactMaterial()
+            type: CANNON.Body.DYNAMIC,
+            position: engine.input.GetController(0).position,
         });
-        super(mesh,body);
 
-        this.targetPos;
+        super(mesh, body);
+
+        this.tarDir = undefined;
+        this.speed = 5;
+        this.totTime = 0;
+        this.decayTime = 3;
     }
 
     OnUpdate()
     {
         super.OnUpdate();
 
-        const controller = engine.input.GetController(0);
+        this.totTime += engine.timer.getDelta();
+        if(this.totTime >= this.decayTime)
+        {
+            console.log("Remove Bullet");
+        }
+        this.body.position.addScaledVector(this.speed * engine.timer.getDelta(), 
+                                this.tarDir, this.body.position);
+    }
 
-        this.body.position.copy(controller.position);
-        this.body.quaternion.copy(controller.quaternion);
+    FireProjectile(forwardAxis, controllerQuaternion)
+    {
+        this.tarDir = forwardAxis;
+        this.body.quaternion.copy(controllerQuaternion);
+    }
+
+}
+
+export class Hand extends GameObject
+{
+    constructor()
+    {
+        const mesh = AssetLoader.AssetCache.models['gun'].clone();
         
+        mesh.scale.set(0.4,0.4,0.4);
+        const boundingBox = new THREE.Box3().setFromObject(mesh);
+        const size = new THREE.Vector3();
+        boundingBox.getSize(size);
+        const center = new THREE.Vector3();
+        boundingBox.getCenter(center);
+
+        mesh.position.set(-center.x,-center.y,-center.z);
+        
+
+        const shape = new CANNON.Box(new CANNON.Vec3(size.x/2, size.y/2, size.z/2));
+
+        const body = new CANNON.Body({
+            mass: 0,
+            type: CANNON.Body.KINEMATIC,
+            position: new CANNON.Vec3(0,0,0),
+            shape: shape
+        });
+        super(mesh,body);
+
+        this.controller = engine.input.GetController(0);
+
+        this.controller.addEventListener('selectstart', (event) => {
+            this.OnTriggerPull();
+        });
+        this.controller.addEventListener('selectend', () =>{
+            console.log('trigger released');
+        })
+
+    }
+
+    OnUpdate()
+    {
+        super.OnUpdate();
+
+        this.body.position.copy(this.controller.position);
+        this.body.quaternion.copy(this.controller.quaternion);
+        
+    }
+
+    OnTriggerPull()
+    {
+        const forwardDir = new THREE.Vector3(0,0,-1);
+
+        forwardDir.applyQuaternion(this.body.quaternion);
+        forwardDir.normalize();
+        new UserProjectile().FireProjectile(forwardDir, this.body.quaternion);
+
     }
 
 
@@ -209,28 +281,51 @@ export class Projectile extends GameObject
             shape: shape,
             type: CANNON.Body.DYNAMIC,
             position: new CANNON.Vec3(0, 5, -7),
-            
         });
 
         super(mesh, body);
 
         this.target = null;
         this.speed = 5;
-        
+        this.fireTime = 2;
+        this.despawnTime = 4;
+        this.totTime = 0;
+        this.isFired = false;
+        this.isInAir = false;
+        this.spawnPos = new CANNON.Vec3(0, 5, -7);
+        this.tarDir = undefined;
     }
 
     OnUpdate()
     {
-        super.OnUpdate();   
-
-        if(this.target)
+        super.OnUpdate();
+        
+        if(!this.isFired || this.isInAir)
+            { this.totTime += engine.timer.getDelta(); }   
+        
+        if(this.target && this.isFired && !this.isInAir)
         {
-            const tarDir = this.target.body.position.vsub(this.body.position);
-            tarDir.normalize();
+            this.isInAir = true;
+            this.tarDir = this.target.body.position.vsub(this.body.position);
+            this.tarDir.normalize();
+            this.body.quaternion.setFromVectors(new CANNON.Vec3(0,0,1),this.tarDir);
+        }
+        if(this.isInAir)
+        {
             this.body.position.addScaledVector(this.speed * engine.timer.getDelta(), 
-                                                tarDir, this.body.position);
+                                            this.tarDir, this.body.position);
+        }
+        if(!this.isFired && this.totTime >= this.fireTime )
+        {
+            this.isFired = true;
+        }
+        if(this.isInAir && this.totTime >= this.despawnTime)
+        {
+            this.body.position.copy(this.spawnPos);
+            this.isFired = false;
+            this.totTime = 0;
+            this.isInAir = false;
 
-            this.body.quaternion.setFromVectors(new CANNON.Vec3(0,0,1),tarDir);
         }
     }
 
@@ -250,13 +345,15 @@ export class Projectile extends GameObject
     OnCollision(event)
     {
         super.OnCollision(event);
-        this.group.visible = false;
-        
-        setTimeout(() => {
-            engine.physicsWorld.removeBody(this.body);
-        }, 0);
 
-        console.log('hit target');
+        if(event.body.gameObject == this.target.body.gameObject)
+        {           
+            this.body.position.copy(this.spawnPos);
+            this.isFired = false;
+            this.totTime = 0;
+            this.isInAir = false;
+        }        
+
     }
 }
 

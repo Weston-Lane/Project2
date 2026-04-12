@@ -4,8 +4,6 @@ import * as AssetLoader from './Core/TextureObjectLoader'
  kind of a shitty implementation but we're on a time crunch */
 export async function LoadAssets()
 {
-    // 1. Grab the dynamic base path from Vite
-    const base = import.meta.env.BASE_URL;
 
     // 2. Append your model paths directly to the base (Do NOT include 'public/')
     const CAR_MODEL = AssetLoader.GetPath('models/vehicle.glb');
@@ -19,4 +17,8 @@ export async function LoadAssets()
     const TARGET_MODEL = AssetLoader.GetPath('models/Target.glb');
     AssetLoader.AssetCache.models['target'] = 
         await AssetLoader.LoadTextureObjectGLB(TARGET_MODEL);
+
+    const GUN_MODEL = AssetLoader.GetPath('models/Gun.glb');
+    AssetLoader.AssetCache.models['gun'] = 
+        await AssetLoader.LoadTextureObjectGLB(GUN_MODEL);
 }

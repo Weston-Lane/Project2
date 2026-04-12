@@ -19,7 +19,11 @@ export class GameObject
         /** @type {CANNON.Body} */
         this.body;
 
-        this.group.add(this.mesh);
+        if(mesh)
+        {
+            this.group.add(this.mesh);
+        }
+        
 
         if(body)
             { this.body = body; }

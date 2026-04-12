@@ -35,6 +35,10 @@ export class Engine {
             gravity: new CANNON.Vec3(0, GRAVITY, 0),
             
         });
+
+        /** @type {CANNON.Body} Dead phys bodies to remove after phys tick. */
+        this.deadBodies = [];
+
         this.standardPhysicsMat;
 
         // Increase iterations. 50 is a standard baseline for stable stacking in games.
@@ -50,6 +54,12 @@ export class Engine {
         this.timer = new THREE.Timer();
 
         this.input = new Input(this.renderer);
+
+        this.debugGroup = new THREE.Group();
+        this.scene.add(this.debugGroup);
+        this.debugGroup.visible = false;
+        this.cannonDebugger = new CannonDebuger(this.debugGroup, this.physicsWorld);
+        
 
         this.debugEnabled = false;
 
@@ -75,25 +85,16 @@ export class Engine {
         this.renderer.xr.enabled = true;
         
         this.DebugButtonCreate();
-        const debugGroup = new THREE.Group();
-        debugGroup.visible = false;
-        this.scene.add(debugGroup);
-        const cannonDebugger = CannonDebuger(debugGroup, this.physicsWorld);
 
+
+        //*****************UPDATE LOOP*************************
         this.renderer.setAnimationLoop((time, frame) =>{
-            this.timer.update(time);
-
-            this.physicsWorld.step(PHY_TIME_STEP, this.timer.getDelta(), MAX_SUB_STEPS);
-            if(this.debugEnabled)
-            { 
-                cannonDebugger.update();
-                debugGroup.visible = !debugGroup.visible;
-            }
 
             this.OnUpdate(time, frame);
             this.OnRender();
 
         });
+        //*****************UPDATE LOOP*************************
 
         //load skybox
         
@@ -126,6 +127,20 @@ export class Engine {
      * @param {Object} frame - WebXR frame state data.
      */
     OnUpdate(time, frame) {
+
+        if(this.debugEnabled)
+        { 
+            this.cannonDebugger.update();
+            this.debugGroup.visible = !this.debugGroup.visible;
+        }
+
+        this.timer.update(time);
+
+        this.physicsWorld.step(PHY_TIME_STEP, this.timer.getDelta(), MAX_SUB_STEPS);
+        
+        //!BODIES MUST BE REMOVED AFTER PHYS TICK
+        this.deadBodies.forEach(body => this.physicsWorld.removeBody(body));
+
         this.updatableObjs.forEach(obj => obj.OnUpdate(time, frame));
     }
 
@@ -168,6 +183,17 @@ export class Engine {
         debugBtn.addEventListener('click', () => {
             this.debugEnabled = !this.debugEnabled;
         });
+    }
+    /**
+     * Removes Body from Phys engine after physics tick is complete to prevent null errors on CANNON Phys que
+     * @param {CANNON.Body} body
+     */
+    RemoveBody(body)
+    {
+        if(!this.deadBodies.includes(body))
+        {
+            this.deadBodies.push(body);
+        }
     }
 }
 export const engine = new Engine();
