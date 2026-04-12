@@ -95,8 +95,9 @@ export class Engine {
         });
 
         //load skybox
+        const base = import.meta.env.BASE_URL;
         const textureLoader = new THREE.TextureLoader();
-        textureLoader.load('../../public/clearSky.png', (texture) => {
+        textureLoader.load(base + 'clearSky.png', (texture) => {
             
             texture.mapping = THREE.EquirectangularReflectionMapping;
             this.scene.background = texture;
