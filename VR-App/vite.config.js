@@ -5,7 +5,7 @@ export default defineConfig(({ command }) => {
   if (command === 'build') {
     // This runs when you push to GitHub Pages
     return {
-      base: '/Project2/VR-App/', 
+      base: '/Project2/', 
     }
   } else {
     // This runs when you type 'npm run dev' locally
