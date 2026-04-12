@@ -8,15 +8,15 @@ export async function LoadAssets()
     const base = import.meta.env.BASE_URL;
 
     // 2. Append your model paths directly to the base (Do NOT include 'public/')
-    const CAR_MODEL = base + 'models/vehicle.glb';
+    const CAR_MODEL = AssetLoader.GetPath('models/vehicle.glb');
     AssetLoader.AssetCache.models['vehicle'] = 
         await AssetLoader.LoadTextureObjectGLB(CAR_MODEL);
 
-    const PIPE_MODEL = base + 'models/pipe.glb';
+    const PIPE_MODEL = AssetLoader.GetPath('models/pipe.glb');
     AssetLoader.AssetCache.models['pipe'] = 
         await AssetLoader.LoadTextureObjectGLB(PIPE_MODEL);
 
-    const TARGET_MODEL = base + 'models/Target.glb';
+    const TARGET_MODEL = AssetLoader.GetPath('models/Target.glb');
     AssetLoader.AssetCache.models['target'] = 
         await AssetLoader.LoadTextureObjectGLB(TARGET_MODEL);
 }

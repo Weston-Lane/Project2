@@ -3,7 +3,8 @@ import { VRButton } from 'three/addons/webxr/VRButton.js';
 import * as CANNON from 'cannon-es';
 import CannonDebuger from 'cannon-es-debugger';
 import {Input} from './Input'
-import * as AssetLoader from '../ModelLoads.js'
+import * as ModelLoader from '../ModelLoads.js'
+import * as AssetLoader from './TextureObjectLoader.js'
 
 const FOV = 75;
 const N_PLANE = 0.1;
@@ -65,7 +66,7 @@ export class Engine {
             return;
         this.initialized = true;
 
-        await AssetLoader.LoadAssets();
+        await ModelLoader.LoadAssets();
 
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
@@ -95,9 +96,9 @@ export class Engine {
         });
 
         //load skybox
-        const base = import.meta.env.BASE_URL;
+        
         const textureLoader = new THREE.TextureLoader();
-        textureLoader.load(base + 'clearSky.png', (texture) => {
+        textureLoader.load(AssetLoader.GetPath('clearSky.png'), (texture) => {
             
             texture.mapping = THREE.EquirectangularReflectionMapping;
             this.scene.background = texture;

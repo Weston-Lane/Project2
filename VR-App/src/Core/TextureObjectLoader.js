@@ -65,3 +65,8 @@ export async function LoadTextureObjectOBJ(objPath, texturePaths) {
     return objGroup;
 }
 
+export function GetPath(assetPath)
+{
+    return import.meta.env.BASE_URL + assetPath;
+}
+
