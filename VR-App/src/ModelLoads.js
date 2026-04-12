@@ -15,4 +15,5 @@ export async function LoadAssets()
     const TARGET_MODEL = '../public/models/Target.glb';
     AssetLoader.AssetCache.models['target'] = 
         await AssetLoader.LoadTextureObjectGLB(TARGET_MODEL);
+        
 }

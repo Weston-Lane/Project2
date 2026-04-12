@@ -70,6 +70,6 @@ export class GameObject
      */
     OnCollision(event)
     {
-
+        
     }
 }
