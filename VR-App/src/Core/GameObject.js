@@ -66,9 +66,7 @@ export class GameObject
     OnUpdate()
     {
         this.group.position.copy(this.body.position);
-        this.group.quaternion.copy(this.body.quaternion);
-
-        
+        this.group.quaternion.copy(this.body.quaternion); 
     }
 
     /**

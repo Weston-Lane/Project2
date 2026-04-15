@@ -19,7 +19,13 @@ const GRAVITY = -9.82;
  * Core application engine managing the Three.js WebGL renderer, WebXR loop, 
  * and Cannon-es physics simulation.
  */
+/**
+ * @class
+ */
 export class Engine {
+    /**
+     * @constructor
+     */
     constructor() {
         /** @type {THREE.Scene} The main visual scene graph. */
         this.scene = new THREE.Scene();
@@ -36,15 +42,15 @@ export class Engine {
             
         });
 
-        /** @type {CANNON.Body} Dead phys bodies to remove after phys tick. */
+        /** @type {Array<CANNON.Body>} Dead phys bodies to remove after phys tick. */
         this.deadBodies = [];
-
+        /** @type {CANNON.Material} */
         this.standardPhysicsMat;
 
         // Increase iterations. 50 is a standard baseline for stable stacking in games.
         this.physicsWorld.solver.iterations = 40;
 
-        /** @type {Array<Object>} Collection of game objects requiring per-frame updates. */
+        /** @type {Array<GameObject>} Collection of game objects requiring per-frame updates. */
         this.updatableObjs = [];
         
         /** @type {boolean} Flag to prevent multiple initialization calls. */
@@ -52,24 +58,26 @@ export class Engine {
 
         /** @type {THREE.Timer} High-resolution timer for rendering and physics steps. */
         this.timer = new THREE.Timer();
-
+        
+        /** @type {Input} */
         this.input = new Input(this.renderer);
 
+        /** @type {THREE.Group} */
         this.debugGroup = new THREE.Group();
         this.scene.add(this.debugGroup);
         this.debugGroup.visible = false;
+        
+        /** @type {CannonDebugger} */
         this.cannonDebugger = new CannonDebuger(this.debugGroup, this.physicsWorld);
         
-
+        /** @type {boolean} */
         this.debugEnabled = false;
-
-
-
 
     }
 
     /**
      * Appends the renderer to the DOM, enables WebXR, and begins the main execution loop.
+     * @returns {Promise<void>}
      */
     async Init() {
         if(this.initialized)
@@ -125,6 +133,7 @@ export class Engine {
      * Dispatches the update cycle to all registered objects.
      * @param {number} time - Current execution time (in ms).
      * @param {Object} frame - WebXR frame state data.
+     * @returns {void}
      */
     OnUpdate(time, frame) {
 
@@ -137,7 +146,7 @@ export class Engine {
         this.timer.update(time);
 
         this.physicsWorld.step(PHY_TIME_STEP, this.timer.getDelta(), MAX_SUB_STEPS);
-        
+
         //!BODIES MUST BE REMOVED AFTER PHYS TICK
         this.deadBodies.forEach(body => this.physicsWorld.removeBody(body));
 
@@ -146,6 +155,7 @@ export class Engine {
 
     /**
      * Commands the WebGLRenderer to draw the current scene state to the screen/headset.
+     * @returns {void}
      */
     OnRender() {
         this.renderer.render(this.scene, this.camera);
@@ -153,7 +163,8 @@ export class Engine {
 
     /**
      * Registers a composite game object into the engine's active systems.
-     * @param {Object} obj - The entity to add. Must expose `.mesh`, `.body`, and `.OnUpdate()`.
+     * @param {GameObject} obj - The entity to add. Must expose `.mesh`, `.body`, and `.OnUpdate()`.
+     * @returns {void}
      */
     AddObj(obj) {
         this.scene.add(obj.group);
@@ -162,6 +173,9 @@ export class Engine {
     }
 
 
+    /**
+     * @returns {void}
+     */
     DebugButtonCreate()
     {
         // 1. Create the button element
@@ -184,9 +198,11 @@ export class Engine {
             this.debugEnabled = !this.debugEnabled;
         });
     }
+    
     /**
      * Removes Body from Phys engine after physics tick is complete to prevent null errors on CANNON Phys que
      * @param {CANNON.Body} body
+     * @returns {void}
      */
     RemoveBody(body)
     {

@@ -3,11 +3,18 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'; 
 import { OBJLoader } from 'three/examples/jsm/Addons.js';
 
+/**
+ * @type {{ models: Record<string, THREE.Group | THREE.Object3D> }}
+ */
 export const AssetCache = {
     models: {}
 }
 
 //GLBs have textures in the binary
+/**
+ * @param {string} glbPath 
+ * @returns {Promise<THREE.Group>}
+ */
 export async function LoadTextureObjectGLB(glbPath) {
     const gltfLoader = new GLTFLoader();
     const gltfData = await gltfLoader.loadAsync(glbPath);
@@ -24,6 +31,11 @@ export async function LoadTextureObjectGLB(glbPath) {
     return object;
 }
 
+/**
+ * @param {string} objPath 
+ * @param {{ diffuse?: string, normal?: string, roughness?: string }} texturePaths 
+ * @returns {Promise<THREE.Group>}
+ */
 export async function LoadTextureObjectOBJ(objPath, texturePaths) {
     const objLoader = new OBJLoader();
     const textureLoader = new THREE.TextureLoader();
@@ -65,6 +77,10 @@ export async function LoadTextureObjectOBJ(objPath, texturePaths) {
     return objGroup;
 }
 
+/**
+ * @param {string} assetPath 
+ * @returns {string}
+ */
 export function GetPath(assetPath)
 {
     return import.meta.env.BASE_URL + assetPath;

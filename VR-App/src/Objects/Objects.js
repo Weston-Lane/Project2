@@ -6,8 +6,14 @@ import * as AssetLoader from '../Core/TextureObjectLoader.js';
 import { QuadMesh } from 'three/webgpu';
 
 
+/**
+ * @extends {GameObject}
+ */
 export class Cube extends GameObject{
     
+    /**
+     * @constructor
+     */
     constructor()
     {
         const dim = [5,1,1,1];
@@ -25,10 +31,16 @@ export class Cube extends GameObject{
 
         super(mesh, body);
         
+        /** @type {GameObject | null} */
         this.targetObj = null;
+        
+        /** @type {number} */
         this.moveSpeed = 1;
     }
 
+    /**
+     * @returns {void}
+     */
     OnUpdate()
     {
         super.OnUpdate();
@@ -56,14 +68,20 @@ export class Cube extends GameObject{
         }
 
     }
+    
     /**
      * @param {GameObject} obj 
+     * @returns {void}
      */
     AddTarget(obj)
     {
         this.targetObj = obj;
     }
 
+    /**
+     * @param {Object} event
+     * @returns {void}
+     */
     OnCollision(event)
     {
         super.OnCollision(event);
@@ -71,8 +89,14 @@ export class Cube extends GameObject{
     } 
 }
 
+/**
+ * @extends {GameObject}
+ */
 export class Plane extends GameObject
 {
+    /**
+     * @constructor
+     */
     constructor()
     {
         const geo = new THREE.PlaneGeometry(50,50);
@@ -93,8 +117,14 @@ export class Plane extends GameObject
     }
 }
 
+/**
+ * @extends {GameObject}
+ */
 class UserProjectile extends GameObject
 {
+    /**
+     * @constructor
+     */
     constructor()
     {   
         const mesh = AssetLoader.AssetCache.models['bullet'].clone();
@@ -123,12 +153,22 @@ class UserProjectile extends GameObject
         this.body.type = CANNON.Body.DYNAMIC;
         this.body.mass = 0;
 
+        /** @type {CANNON.Vec3 | THREE.Vector3} */
         this.tarDir = new CANNON.Vec3(0,0,0);
+        
+        /** @type {number} */
         this.speed = 5;
+        
+        /** @type {number} */
         this.totTime = 0;
+        
+        /** @type {number} */
         this.decayTime = 3;
     }
 
+    /**
+     * @returns {void}
+     */
     OnUpdate()
     {
         super.OnUpdate();
@@ -147,12 +187,20 @@ class UserProjectile extends GameObject
 
     }
     
+    /**
+     * @returns {void}
+     */
     Move()
     {
         this.body.position.addScaledVector(this.speed * engine.timer.getDelta(), 
                                     this.tarDir, this.body.position);
     }
 
+    /**
+     * @param {CANNON.Vec3 | THREE.Vector3} forwardAxis 
+     * @param {CANNON.Quaternion | THREE.Quaternion} controllerQuaternion 
+     * @returns {void}
+     */
     FireProjectile(forwardAxis, controllerQuaternion)
     {
         this.SetActive(true);
@@ -162,8 +210,14 @@ class UserProjectile extends GameObject
 
 }
 
+/**
+ * @extends {GameObject}
+ */
 export class Hand extends GameObject
 {
+    /**
+     * @constructor
+     */
     constructor()
     {
         const mesh = AssetLoader.AssetCache.models['gun'].clone();
@@ -189,6 +243,7 @@ export class Hand extends GameObject
 
         super(mesh,body);
 
+        /** @type {THREE.Group | Object} */
         this.controller = engine.input.GetController(0);
 
         this.controller.addEventListener('selectstart', (event) => {
@@ -198,8 +253,12 @@ export class Hand extends GameObject
             console.log('trigger released');
         })
 
+        /** @type {UserProjectile[]} */
         this.projectilePool = []
+        
+        /** @type {number} */
         this.maxProjectiles = 10;
+        
         for(let i = 0; i<this.maxProjectiles; i++)
         {
             const projectile = new UserProjectile();
@@ -207,10 +266,16 @@ export class Hand extends GameObject
             this.projectilePool.push(projectile);
         }
 
+        /** @type {number} */
         this.fireRate = 5; // 1s/bullets
+        
+        /** @type {number} */
         this.fireDeltaTime = 0;
     }
 
+    /**
+     * @returns {void}
+     */
     OnUpdate()
     {
         this.fireDeltaTime += engine.timer.getDelta();
@@ -221,6 +286,9 @@ export class Hand extends GameObject
         
     }
 
+    /**
+     * @returns {void}
+     */
     OnTriggerPull()
     {
         if(this.fireDeltaTime <= 1/this.fireRate)
@@ -246,8 +314,14 @@ export class Hand extends GameObject
     }
 }
 
+/**
+ * @extends {GameObject}
+ */
 export class Car extends GameObject
 {
+    /**
+     * @constructor
+     */
     constructor()
     {
             
@@ -257,6 +331,9 @@ export class Car extends GameObject
         this.body.quaternion.setFromEuler(0,-90,0);
     }
 
+    /**
+     * @returns {void}
+     */
     OnUpdate()
     {
         super.OnUpdate();
@@ -270,8 +347,14 @@ export class Car extends GameObject
     }
 }
 
+/**
+ * @extends {GameObject}
+ */
 export class Pipe extends GameObject
 {
+    /**
+     * @constructor
+     */
     constructor()
     {
             
@@ -282,6 +365,9 @@ export class Pipe extends GameObject
         
     }
 
+    /**
+     * @returns {void}
+     */
     OnUpdate()
     {
         super.OnUpdate();
@@ -294,8 +380,14 @@ export class Pipe extends GameObject
     }
 }
 
+/**
+ * @extends {GameObject}
+ */
 export class Target extends GameObject
 {
+    /**
+     * @constructor
+     */
     constructor()
     {
         const mesh = AssetLoader.AssetCache.models['target'].clone();
@@ -310,11 +402,18 @@ export class Target extends GameObject
         
     }
 
+    /**
+     * @returns {void}
+     */
     OnUpdate()
     {
         super.OnUpdate();
     }
 
+    /**
+     * @param {Object} event 
+     * @returns {void}
+     */
     OnCollision(event)
     {
         if(event.body.gameObject instanceof UserProjectile)
@@ -326,8 +425,14 @@ export class Target extends GameObject
     }
 }
 
+/**
+ * @extends {GameObject}
+ */
 export class Projectile extends GameObject
 {
+    /**
+     * @constructor
+     */
     constructor()
     {
         const dim = [0.1,0.1,0.4,1];
@@ -345,17 +450,37 @@ export class Projectile extends GameObject
 
         super(mesh, body);
 
+        /** @type {GameObject | null} */
         this.target = null;
+        
+        /** @type {number} */
         this.speed = 5;
+        
+        /** @type {number} */
         this.fireTime = 2;
+        
+        /** @type {number} */
         this.despawnTime = 4;
+        
+        /** @type {number} */
         this.totTime = 0;
+        
+        /** @type {boolean} */
         this.isFired = false;
+        
+        /** @type {boolean} */
         this.isInAir = false;
+        
+        /** @type {CANNON.Vec3} */
         this.spawnPos = new CANNON.Vec3(0, 5, -7);
+        
+        /** @type {CANNON.Vec3 | undefined} */
         this.tarDir = undefined;
     }
 
+    /**
+     * @returns {void}
+     */
     OnUpdate()
     {
         super.OnUpdate();
@@ -391,12 +516,17 @@ export class Projectile extends GameObject
 
     /**
      * @param {GameObject} obj 
+     * @returns {void}
      */
     MakeTarget(obj)
     {
         this.target = obj
     }
 
+    /**
+     * @param {Object} event
+     * @returns {void}
+     */
     OnCollision(event)
     {
         super.OnCollision(event);
@@ -410,6 +540,14 @@ export class Projectile extends GameObject
         }        
 
     }
+}
+
+/**
+ * @class
+ */
+export class ProjectileSpawner
+{
+    
 }
 
 export function LoadGame()
