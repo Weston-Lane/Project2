@@ -3,6 +3,7 @@ import * as CANNON from 'cannon-es'
 import {engine} from '../Core/Engine.js'
 import { GameObject } from '../Core/GameObject.js';
 import * as AssetLoader from '../Core/TextureObjectLoader.js';
+import { QuadMesh } from 'three/webgpu';
 
 
 export class Cube extends GameObject{
@@ -95,23 +96,34 @@ export class Plane extends GameObject
 class UserProjectile extends GameObject
 {
     constructor()
-    {
-        const dim = [0.1,0.1,0.4,1];
-        const geo = new THREE.BoxGeometry(dim[0],dim[1],dim[2],dim[3]);
-        const mat = new THREE.MeshLambertMaterial({color: 0x0077ff});
-        const mesh = new THREE.Mesh(geo, mat);
+    {   
+        const mesh = AssetLoader.AssetCache.models['bullet'].clone();
+        mesh.scale.set(0.5,0.5,0.5);
 
-        const shape = new CANNON.Box(new CANNON.Vec3(dim[0]/2, dim[1]/2, dim[3]/2));
+        const boundingBox = new THREE.Box3().setFromObject(mesh);
+        const size = new THREE.Vector3();
+        boundingBox.getSize(size);
+        const center = new THREE.Vector3();
+        boundingBox.getCenter(center);
+
+        mesh.position.set(-center.x,-center.y,-center.z);
+        
+        const shape = new CANNON.Box(new CANNON.Vec3(size.x/2, size.y/2, size.z/2));
+
         const body = new CANNON.Body({
             mass: 0, // > 0 means dynamic (affected by gravity)
             shape: shape,
             type: CANNON.Body.DYNAMIC,
-            position: engine.input.GetController(0).position,
+            position: new CANNON.Vec3(0, 5, -7),
         });
 
         super(mesh, body);
 
-        this.tarDir = undefined;
+
+        this.body.type = CANNON.Body.DYNAMIC;
+        this.body.mass = 0;
+
+        this.tarDir = new CANNON.Vec3(0,0,0);
         this.speed = 5;
         this.totTime = 0;
         this.decayTime = 3;
@@ -121,17 +133,29 @@ class UserProjectile extends GameObject
     {
         super.OnUpdate();
 
-        this.totTime += engine.timer.getDelta();
-        if(this.totTime >= this.decayTime)
+        if(this.isActive)
         {
-            console.log("Remove Bullet");
+            this.totTime += engine.timer.getDelta();
+            if(this.totTime >= this.decayTime)
+            {
+                this.SetActive(false);
+                this.totTime = 0;
+            }
+
+            this.Move();
         }
+
+    }
+    
+    Move()
+    {
         this.body.position.addScaledVector(this.speed * engine.timer.getDelta(), 
-                                this.tarDir, this.body.position);
+                                    this.tarDir, this.body.position);
     }
 
     FireProjectile(forwardAxis, controllerQuaternion)
     {
+        this.SetActive(true);
         this.tarDir = forwardAxis;
         this.body.quaternion.copy(controllerQuaternion);
     }
@@ -144,7 +168,7 @@ export class Hand extends GameObject
     {
         const mesh = AssetLoader.AssetCache.models['gun'].clone();
         
-        mesh.scale.set(0.4,0.4,0.4);
+        mesh.scale.set(0.5,0.5,0.5);
         const boundingBox = new THREE.Box3().setFromObject(mesh);
         const size = new THREE.Vector3();
         boundingBox.getSize(size);
@@ -162,6 +186,7 @@ export class Hand extends GameObject
             position: new CANNON.Vec3(0,0,0),
             shape: shape
         });
+
         super(mesh,body);
 
         this.controller = engine.input.GetController(0);
@@ -173,10 +198,22 @@ export class Hand extends GameObject
             console.log('trigger released');
         })
 
+        this.projectilePool = []
+        this.maxProjectiles = 10;
+        for(let i = 0; i<this.maxProjectiles; i++)
+        {
+            const projectile = new UserProjectile();
+            projectile.SetActive(false);
+            this.projectilePool.push(projectile);
+        }
+
+        this.fireRate = 5; // 1s/bullets
+        this.fireDeltaTime = 0;
     }
 
     OnUpdate()
     {
+        this.fireDeltaTime += engine.timer.getDelta();
         super.OnUpdate();
 
         this.body.position.copy(this.controller.position);
@@ -186,15 +223,27 @@ export class Hand extends GameObject
 
     OnTriggerPull()
     {
+        if(this.fireDeltaTime <= 1/this.fireRate)
+        {
+            console.log('firerate too slow. STOP SPAMMIN CLICKS');
+            return;
+        }
+
+        this.fireDeltaTime = 0;
         const forwardDir = new THREE.Vector3(0,0,-1);
 
         forwardDir.applyQuaternion(this.body.quaternion);
         forwardDir.normalize();
-        new UserProjectile().FireProjectile(forwardDir, this.body.quaternion);
-
+        for(const projectile of this.projectilePool)
+        {
+            if(!projectile.isActive)
+            {
+                projectile.body.position.copy(this.body.position);
+                projectile.FireProjectile(forwardDir, this.controller.quaternion);
+                return;
+            }
+        }
     }
-
-
 }
 
 export class Car extends GameObject
@@ -250,6 +299,7 @@ export class Target extends GameObject
     constructor()
     {
         const mesh = AssetLoader.AssetCache.models['target'].clone();
+        mesh.scale.set(0.5,0.5,0.5);
         super(mesh,undefined);
 
         this.body.type = CANNON.Body.STATIC;
@@ -263,6 +313,16 @@ export class Target extends GameObject
     OnUpdate()
     {
         super.OnUpdate();
+    }
+
+    OnCollision(event)
+    {
+        if(event.body.gameObject instanceof UserProjectile)
+        {
+            console.log('Tager hit');
+            event.body.gameObject.SetActive(false);
+        }
+        
     }
 }
 
@@ -335,11 +395,6 @@ export class Projectile extends GameObject
     MakeTarget(obj)
     {
         this.target = obj
-    }
-
-    ReturnToPool()
-    {
-        
     }
 
     OnCollision(event)

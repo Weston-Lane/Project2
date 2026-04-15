@@ -15,9 +15,6 @@ Objects.LoadGame();
 const projectile = new Objects.Projectile();
 
 
-// const target = new Objects.Target();
-// target.body.position.set(-2,1,-1);
-
 class Head extends GameObject
 {
     constructor()
@@ -31,7 +28,7 @@ class Head extends GameObject
         const body = new CANNON.Body(
             {
                 mass: 0, 
-                type: CANNON.Body.KINEMATIC, // Tells Cannon "I will move this manually, ignore gravity"
+                type: CANNON.Body.KINEMATIC, // Ignores gravity, move manually
                 shape: headShape,
                 position: cHeadPos
             });

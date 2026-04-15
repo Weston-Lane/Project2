@@ -18,12 +18,17 @@ export class GameObject
         this.mesh = mesh;
         /** @type {CANNON.Body} */
         this.body;
+        /** @type {boolean} */
+        this.isActive = true;
 
         if(mesh)
         {
             this.group.add(this.mesh);
         }
-        
+        else
+        {
+            
+        }
 
         if(body)
             { this.body = body; }
@@ -75,5 +80,33 @@ export class GameObject
     OnCollision(event)
     {
         
+    }
+
+    /**
+     * @param {isActive} boolean
+     */
+    SetActive(isActive)
+    {
+        this.isActive = isActive;
+        if(!isActive)
+        {
+            this.mesh.visible = false;
+            this.body.sleep();
+
+            this.body.velocity.set(0,0,0);
+            this.body.angularVelocity.set(0,0,0);
+
+            this.body.collisionFilterGroup = 0;
+            this.body.collisionFilterMask = 0;
+        }
+        else
+        {
+
+            this.mesh.visible = true;
+            this.body.wakeUp();
+
+            this.body.collisionFilterGroup = 1;
+            this.body.collisionFilterMask = -1;
+        }
     }
 }
