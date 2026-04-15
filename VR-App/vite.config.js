@@ -10,7 +10,8 @@ export default defineConfig(({ command }) => {
   } else {
     // This runs when you type 'npm run dev' locally
     return {
-      base: '/', 
+      base: '/',
+      
     }
   }
-})
+});

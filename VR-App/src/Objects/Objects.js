@@ -3,13 +3,13 @@ import * as CANNON from 'cannon-es'
 import {engine} from '../Core/Engine.js'
 import { GameObject } from '../Core/GameObject.js';
 import * as AssetLoader from '../Core/TextureObjectLoader.js';
-import { QuadMesh } from 'three/webgpu';
+
 
 
 /**
  * @extends {GameObject}
  */
-export class Cube extends GameObject{
+export class Cube extends GameObject {
     
     /**
      * @constructor
@@ -416,6 +416,8 @@ export class Target extends GameObject
      */
     OnCollision(event)
     {
+        super.OnCollision(event);
+
         if(event.body.gameObject instanceof UserProjectile)
         {
             console.log('Tager hit');
@@ -510,7 +512,6 @@ export class Projectile extends GameObject
             this.isFired = false;
             this.totTime = 0;
             this.isInAir = false;
-
         }
     }
 
@@ -547,7 +548,49 @@ export class Projectile extends GameObject
  */
 export class ProjectileSpawner
 {
+    constructor()
+    {
+        /** @type {Projectile[]} */
+        this.projectilePool = [];
+        /** @type {number} */
+        this.maxProjectiles = 30;
+        //Fill Pool
+        for(let i = 0; i<this.maxProjectiles; i++)
+        {
+            const projectile = new Projectile();
+            projectile.SetActive(false);
+            this.projectilePool.push(projectile);
+        }
+
+        /** @type {CANNON.Vec3} */
+        this.spawnPos = new CANNON.Vec3(0, 5, -7)
+
+        /** @type {Array<() => void>} */
+        this.attacks = [
+            () => this.StraightFire(),
+        ];
     
+    }
+
+    OnUpdate()
+    {
+        
+    }
+
+    // #region ATTACKS
+        /************ATTACKS************ */
+        StraightFire()
+        {
+            console.log('Straight Fire');
+        }
+        /************************ */
+    // #endregion
+
+    DoRandomAttack()
+    {
+        const ran = Math.floor(Math.random() * this.attacks.length);
+        this.attacks[ran]();
+    }
 }
 
 export function LoadGame()
