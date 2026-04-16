@@ -244,7 +244,7 @@ export class Hand extends GameObject
         super(mesh,body);
 
         /** @type {THREE.Group | Object} */
-        this.controller = engine.input.GetController(0);
+        this.controller = engine.input.GetController(1); // right controller
 
         this.controller.addEventListener('selectstart', (event) => {
             this.OnTriggerPull();
@@ -574,7 +574,7 @@ export class ProjectileSpawner
 
     OnUpdate()
     {
-        
+
     }
 
     // #region ATTACKS

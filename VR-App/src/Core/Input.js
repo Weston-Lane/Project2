@@ -8,8 +8,8 @@ export class Input
     constructor(renderer)
     {
         this.controllers = [
-            renderer.xr.getController(0),
-            renderer.xr.getController(1)
+            renderer.xr.getController(0), // left
+            renderer.xr.getController(1) // right
         ];
     }
     /**

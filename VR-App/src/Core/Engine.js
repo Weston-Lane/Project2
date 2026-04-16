@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
+import ThreeMeshUI from 'three-mesh-ui'
 import * as CANNON from 'cannon-es';
 import CannonDebuger from 'cannon-es-debugger';
 import {Input} from './Input'
 import * as ModelLoader from '../ModelLoads.js'
 import * as AssetLoader from './TextureObjectLoader.js'
+import * as UI from './WorldUI.js';
 
 const FOV = 75;
 const N_PLANE = 0.1;
@@ -22,7 +24,7 @@ const GRAVITY = -9.82;
 /**
  * @class
  */
-export class Engine {
+class Engine {
     /**
      * @constructor
      */
@@ -52,7 +54,10 @@ export class Engine {
 
         /** @type {Array<GameObject>} Collection of game objects requiring per-frame updates. */
         this.updatableObjs = [];
-        
+
+        /** @type {Array<WorldUI>} */
+        this.updatableUI = [];
+                
         /** @type {boolean} Flag to prevent multiple initialization calls. */
         this.initialized = false;
 
@@ -94,18 +99,18 @@ export class Engine {
         
         this.DebugButtonCreate();
 
-
+        UI.LoadUI();
         //*****************UPDATE LOOP*************************
         this.renderer.setAnimationLoop((time, frame) =>{
 
             this.OnUpdate(time, frame);
+            ThreeMeshUI.update();
             this.OnRender();
 
         });
         //*****************UPDATE LOOP*************************
 
-        //load skybox
-        
+        //***************** SKYBOX *********************************
         const textureLoader = new THREE.TextureLoader();
         textureLoader.load(AssetLoader.GetPath('clearSky.png'), (texture) => {
             
@@ -113,6 +118,7 @@ export class Engine {
             this.scene.background = texture;
             this.scene.environment = texture; 
         });
+        //**************************************************
 
         this.camera.position.z = 0;
         this.camera.position.y = 2;
@@ -151,6 +157,10 @@ export class Engine {
         this.deadBodies.forEach(body => this.physicsWorld.removeBody(body));
 
         this.updatableObjs.forEach(obj => obj.OnUpdate(time, frame));
+
+        this.updatableUI.forEach(ui => ui.OnUpdate(time));
+
+        
     }
 
     /**
