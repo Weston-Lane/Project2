@@ -1,5 +1,6 @@
 import ThreeMeshUI from 'three-mesh-ui'
 import { engine } from './Engine';
+import { gameManager } from './GameManager';
 import * as AssetLoader from './TextureObjectLoader'
 
 const container = new ThreeMeshUI.Block({
@@ -66,14 +67,13 @@ class ScoreUI extends WorldUI
 
         this.text.set({
             content: "Score: 0",
-            
-            
         });
 
         this.container.position.set(-4,4,-5);
         this.container.rotation.x = 0.55;
         this.container.lookAt(0,0,0);
 
+        gameManager.UI['score'] = this;
     }
 
     AddToScene()
@@ -104,6 +104,8 @@ class TimerUI extends WorldUI
         this.container.position.set(4,4,-5);
         this.container.rotation.x = 0.55;
         this.container.lookAt(0,0,0);
+
+        gameManager.UI['timer'] = this;
 
     }
 

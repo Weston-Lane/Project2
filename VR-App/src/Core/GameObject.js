@@ -59,7 +59,7 @@ export class GameObject
         this.body.gameObject = this;
 
         this.body.addEventListener('collide', this.OnCollision.bind(this));
-
+        
         engine.AddObj(this);
     }
 
@@ -81,7 +81,17 @@ export class GameObject
     }
 
     /**
-     * @param {isActive} boolean
+     * Virtual method to be overridden by child classes.
+     * @param {GameObject} other - The object we collided with
+     * @param {Object} event - The raw Cannon.js event data
+     */
+    OnCollisionEnter(other, event)
+    {
+
+    }
+
+    /**
+     * @param {boolean} isActive
      */
     SetActive(isActive)
     {
@@ -96,15 +106,20 @@ export class GameObject
 
             this.body.collisionFilterGroup = 0;
             this.body.collisionFilterMask = 0;
+
+            engine.RemoveBody(this.body);
+
         }
         else
         {
-
             this.mesh.visible = true;
-            this.body.wakeUp();
 
             this.body.collisionFilterGroup = 1;
             this.body.collisionFilterMask = -1;
+
+            engine.physicsWorld.addBody(this.body);
+
+            this.body.wakeUp();
         }
     }
 }

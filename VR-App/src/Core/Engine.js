@@ -63,6 +63,9 @@ class Engine {
 
         /** @type {THREE.Timer} High-resolution timer for rendering and physics steps. */
         this.timer = new THREE.Timer();
+
+        /** @type {number} Cached delta Time*/ 
+        this.timer.deltaTime = 0;
         
         /** @type {Input} */
         this.input = new Input(this.renderer);
@@ -77,6 +80,11 @@ class Engine {
         
         /** @type {boolean} */
         this.debugEnabled = false;
+
+        this.physicsWorld.addEventListener('beginContact', (event) =>{
+            this.HandleCollisionEnter(event);
+        });
+
 
     }
 
@@ -103,9 +111,11 @@ class Engine {
         //*****************UPDATE LOOP*************************
         this.renderer.setAnimationLoop((time, frame) =>{
 
+            this.timer.deltaTime = this.timer.getDelta();
             this.OnUpdate(time, frame);
             ThreeMeshUI.update();
             this.OnRender();
+            
 
         });
         //*****************UPDATE LOOP*************************
@@ -146,15 +156,16 @@ class Engine {
         if(this.debugEnabled)
         { 
             this.cannonDebugger.update();
-            this.debugGroup.visible = !this.debugGroup.visible;
+            
         }
 
         this.timer.update(time);
 
-        this.physicsWorld.step(PHY_TIME_STEP, this.timer.getDelta(), MAX_SUB_STEPS);
+        this.physicsWorld.step(PHY_TIME_STEP, this.timer.deltaTime, MAX_SUB_STEPS);
 
         //!BODIES MUST BE REMOVED AFTER PHYS TICK
         this.deadBodies.forEach(body => this.physicsWorld.removeBody(body));
+        this.deadBodies.length = 0; // must empty array
 
         this.updatableObjs.forEach(obj => obj.OnUpdate(time, frame));
 
@@ -206,6 +217,7 @@ class Engine {
         // 4. Bind the click event
         debugBtn.addEventListener('click', () => {
             this.debugEnabled = !this.debugEnabled;
+            this.debugGroup.visible = !this.debugGroup.visible;
         });
     }
     
@@ -220,6 +232,37 @@ class Engine {
         {
             this.deadBodies.push(body);
         }
+    }
+
+    /**
+     * @param {GameObject} event.body.gameObject 
+     * @param {CANNON.Body} event.body - The specific Cannon body this object collided with.
+     * @param {CANNON.Body} event.target - The Cannon body that owns this listener (this.body).
+     * @param {CANNON.ContactEquation} event.contact - Mathematical data regarding the impact.
+     */
+    HandleCollisionEnter(event)
+    {
+        const bodyA = event.bodyA;
+        const bodyB = event.bodyB;
+        const objA = bodyA.gameObject;
+        const objB = bodyB.gameObject;
+
+        if(objB && objA)
+        {
+            // Catch the imposter!
+            if(typeof objB.OnCollisionEnter !== 'function') {
+                console.error("IMPOSTER CAUGHT! objB is:", objB);
+                return;
+            }
+            if(typeof objA.OnCollisionEnter !== 'function') {
+                console.error("IMPOSTER CAUGHT! objA is:", objA);
+                return;
+            }
+            
+            objB?.OnCollisionEnter(objA, event);
+            objA?.OnCollisionEnter(objB, event);
+        }
+        
     }
 }
 export const engine = new Engine();

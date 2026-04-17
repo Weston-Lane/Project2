@@ -1,36 +1,30 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es'
 import {engine} from '../Core/Engine.js'
+import { gameManager } from '../Core/GameManager.js';
 import { GameObject } from '../Core/GameObject.js';
 import * as AssetLoader from '../Core/TextureObjectLoader.js';
+import { DEG2RAD } from 'three/src/math/MathUtils.js';
 
 
 
 /**
  * @extends {GameObject}
  */
-export class Cube extends GameObject {
+export class Booth extends GameObject {
     
     /**
      * @constructor
      */
     constructor()
     {
-        const dim = [5,1,1,1];
-        const geo = new THREE.BoxGeometry(dim[0],dim[1],dim[2],dim[3]);
-        const mat = new THREE.MeshLambertMaterial({color: 0x114411});
-        const mesh = new THREE.Mesh(geo, mat);
+        const mesh = AssetLoader.AssetCache.models['booth'].clone();
+        mesh.scale.set(0.4,0.2,0.2);
 
-        const shape = new CANNON.Box(new CANNON.Vec3(dim[0]/2, dim[1]/2, dim[3]/2));
-        const body = new CANNON.Body({
-            mass: 10, // > 0 means dynamic (affected by gravity)
-            shape: shape,
-            position: new CANNON.Vec3(0, 1, -7),
-            
-        });
-
-        super(mesh, body);
-        
+        super(mesh, undefined);
+        this.body.type = CANNON.Body.STATIC;
+        this.body.position.set(0,2.5,-15);
+        this.body.quaternion.setFromEuler(0,DEG2RAD * 180, 0);
         /** @type {GameObject | null} */
         this.targetObj = null;
         
@@ -78,15 +72,6 @@ export class Cube extends GameObject {
         this.targetObj = obj;
     }
 
-    /**
-     * @param {Object} event
-     * @returns {void}
-     */
-    OnCollision(event)
-    {
-        super.OnCollision(event);
- 
-    } 
 }
 
 /**
@@ -120,7 +105,7 @@ export class Plane extends GameObject
 /**
  * @extends {GameObject}
  */
-class UserProjectile extends GameObject
+export class UserProjectile extends GameObject
 {
     /**
      * @constructor
@@ -128,7 +113,7 @@ class UserProjectile extends GameObject
     constructor()
     {   
         const mesh = AssetLoader.AssetCache.models['bullet'].clone();
-        mesh.scale.set(0.5,0.5,0.5);
+        mesh.scale.set(0.08,0.08,0.2);
 
         const boundingBox = new THREE.Box3().setFromObject(mesh);
         const size = new THREE.Vector3();
@@ -149,7 +134,7 @@ class UserProjectile extends GameObject
 
         super(mesh, body);
 
-
+        
         this.body.type = CANNON.Body.DYNAMIC;
         this.body.mass = 0;
 
@@ -175,7 +160,7 @@ class UserProjectile extends GameObject
 
         if(this.isActive)
         {
-            this.totTime += engine.timer.getDelta();
+            this.totTime += engine.timer.deltaTime;
             if(this.totTime >= this.decayTime)
             {
                 this.SetActive(false);
@@ -192,7 +177,7 @@ class UserProjectile extends GameObject
      */
     Move()
     {
-        this.body.position.addScaledVector(this.speed * engine.timer.getDelta(), 
+        this.body.position.addScaledVector(this.speed * engine.timer.deltaTime, 
                                     this.tarDir, this.body.position);
     }
 
@@ -213,7 +198,7 @@ class UserProjectile extends GameObject
 /**
  * @extends {GameObject}
  */
-export class Hand extends GameObject
+export class HandRight extends GameObject
 {
     /**
      * @constructor
@@ -222,7 +207,7 @@ export class Hand extends GameObject
     {
         const mesh = AssetLoader.AssetCache.models['gun'].clone();
         
-        mesh.scale.set(0.5,0.5,0.5);
+        mesh.scale.set(0.1,0.1,0.1);
         const boundingBox = new THREE.Box3().setFromObject(mesh);
         const size = new THREE.Vector3();
         boundingBox.getSize(size);
@@ -257,7 +242,7 @@ export class Hand extends GameObject
         this.projectilePool = []
         
         /** @type {number} */
-        this.maxProjectiles = 10;
+        this.maxProjectiles = 20;
         
         for(let i = 0; i<this.maxProjectiles; i++)
         {
@@ -278,7 +263,7 @@ export class Hand extends GameObject
      */
     OnUpdate()
     {
-        this.fireDeltaTime += engine.timer.getDelta();
+        this.fireDeltaTime += engine.timer.deltaTime;
         super.OnUpdate();
 
         this.body.position.copy(this.controller.position);
@@ -302,11 +287,16 @@ export class Hand extends GameObject
 
         forwardDir.applyQuaternion(this.body.quaternion);
         forwardDir.normalize();
+
         for(const projectile of this.projectilePool)
         {
             if(!projectile.isActive)
             {
-                projectile.body.position.copy(this.body.position);
+                const localOffset = new CANNON.Vec3(0, 0.05, -0.2);
+                const rotateOffset = new CANNON.Vec3();
+                this.body.quaternion.vmult(localOffset,rotateOffset);
+                projectile.body.position.copy(this.body.position.vadd(rotateOffset));
+
                 projectile.FireProjectile(forwardDir, this.controller.quaternion);
                 return;
             }
@@ -394,6 +384,7 @@ export class Target extends GameObject
         mesh.scale.set(0.5,0.5,0.5);
         super(mesh,undefined);
 
+        
         this.body.type = CANNON.Body.STATIC;
         this.body.mass = 0;
         this.body.position.set(0,3,-6);
@@ -410,18 +401,15 @@ export class Target extends GameObject
         super.OnUpdate();
     }
 
-    /**
-     * @param {Object} event 
-     * @returns {void}
-     */
-    OnCollision(event)
+    OnCollisionEnter(other, event)
     {
-        super.OnCollision(event);
+        super.OnCollision(other, event);
 
-        if(event.body.gameObject instanceof UserProjectile)
+        if(other instanceof UserProjectile && other.isActive)
         {
-            console.log('Tager hit');
-            event.body.gameObject.SetActive(false);
+            console.log('Target hit');
+            other.SetActive(false);
+            gameManager.AddScore(1);
         }
         
     }
@@ -488,7 +476,7 @@ export class Projectile extends GameObject
         super.OnUpdate();
         
         if(!this.isFired || this.isInAir)
-            { this.totTime += engine.timer.getDelta(); }   
+            { this.totTime += engine.timer.deltaTime; }   
         
         if(this.target && this.isFired && !this.isInAir)
         {
@@ -499,7 +487,7 @@ export class Projectile extends GameObject
         }
         if(this.isInAir)
         {
-            this.body.position.addScaledVector(this.speed * engine.timer.getDelta(), 
+            this.body.position.addScaledVector(this.speed * engine.timer.deltaTime, 
                                             this.tarDir, this.body.position);
         }
         if(!this.isFired && this.totTime >= this.fireTime )
@@ -593,11 +581,42 @@ export class ProjectileSpawner
     }
 }
 
+export class Head extends GameObject
+{
+    constructor()
+    {
+        const headPos = new THREE.Vector3();
+        const cam = engine.renderer.xr.getCamera();
+        cam.getWorldPosition(headPos);
+
+        const cHeadPos  = new CANNON.Vec3(headPos.x,headPos.y, headPos.z);
+        const headShape = new CANNON.Sphere(0.15);
+        const body = new CANNON.Body(
+            {
+                mass: 0, 
+                type: CANNON.Body.KINEMATIC, // Ignores gravity, move manually
+                shape: headShape,
+                position: cHeadPos
+            });
+            engine.physicsWorld.addBody(body);       
+        super(undefined, body);
+    }
+    OnUpdate()
+    {
+        super.OnUpdate();
+        const headPos = new THREE.Vector3();
+        const cam = engine.renderer.xr.getCamera();
+        cam.getWorldPosition(headPos);
+
+        const cHeadPos  = new CANNON.Vec3(headPos.x,headPos.y, headPos.z);
+        this.body.position.copy(cHeadPos);
+    }
+}
 export function LoadGame()
 {
-    new Cube();
+    new Booth();
     //new Car();
-    new Hand();
+    new HandRight();
     new Plane();
     new Target();
     
