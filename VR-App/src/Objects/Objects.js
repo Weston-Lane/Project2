@@ -23,7 +23,7 @@ export class Booth extends GameObject {
 
         super(mesh, undefined);
         this.body.type = CANNON.Body.STATIC;
-        this.body.position.set(0,2.5,-15);
+        this.body.position.set(0,2.5,-8);
         this.body.quaternion.setFromEuler(0,DEG2RAD * 180, 0);
         /** @type {GameObject | null} */
         this.targetObj = null;
@@ -256,6 +256,9 @@ export class HandRight extends GameObject
         
         /** @type {number} */
         this.fireDeltaTime = 0;
+
+        /** @type {CANNON.Vec3()} offset so the bullet spawns at barrel*/
+        this.localOffset = new CANNON.Vec3(0, 0.05, -0.2);
     }
 
     /**
@@ -292,9 +295,8 @@ export class HandRight extends GameObject
         {
             if(!projectile.isActive)
             {
-                const localOffset = new CANNON.Vec3(0, 0.05, -0.2);
                 const rotateOffset = new CANNON.Vec3();
-                this.body.quaternion.vmult(localOffset,rotateOffset);
+                this.body.quaternion.vmult(this.localOffset,rotateOffset);
                 projectile.body.position.copy(this.body.position.vadd(rotateOffset));
 
                 projectile.FireProjectile(forwardDir, this.controller.quaternion);
@@ -430,12 +432,13 @@ export class Projectile extends GameObject
         const mat = new THREE.MeshLambertMaterial({color: 0xff7700});
         const mesh = new THREE.Mesh(geo, mat);
 
+        const spawnPos = new CANNON.Vec3(0, 3, -10);
         const shape = new CANNON.Box(new CANNON.Vec3(dim[0]/2, dim[1]/2, dim[3]/2));
         const body = new CANNON.Body({
             mass: 0, // > 0 means dynamic (affected by gravity)
             shape: shape,
             type: CANNON.Body.DYNAMIC,
-            position: new CANNON.Vec3(0, 5, -7),
+            position: spawnPos
         });
 
         super(mesh, body);
@@ -462,7 +465,7 @@ export class Projectile extends GameObject
         this.isInAir = false;
         
         /** @type {CANNON.Vec3} */
-        this.spawnPos = new CANNON.Vec3(0, 5, -7);
+        this.spawnPos = spawnPos;
         
         /** @type {CANNON.Vec3 | undefined} */
         this.tarDir = undefined;
@@ -581,36 +584,90 @@ export class ProjectileSpawner
     }
 }
 
-export class Head extends GameObject
+export class PlayerRig extends GameObject
 {
     constructor()
     {
-        const headPos = new THREE.Vector3();
-        const cam = engine.renderer.xr.getCamera();
-        cam.getWorldPosition(headPos);
+        const hitRadius = 0.15
+        const geo = new THREE.SphereGeometry(hitRadius);
+        const mat = new THREE.MeshBasicMaterial({
+            color: 0x999999,
+            side: THREE.DoubleSide, 
+            wireframe: true // Highly recommend wireframe for this test so you aren't blinded!
+        });
+        const mesh = new THREE.Mesh(geo, mat);
 
-        const cHeadPos  = new CANNON.Vec3(headPos.x,headPos.y, headPos.z);
-        const headShape = new CANNON.Sphere(0.15);
+        const headShape = new CANNON.Sphere(hitRadius);
         const body = new CANNON.Body(
             {
                 mass: 0, 
                 type: CANNON.Body.KINEMATIC, // Ignores gravity, move manually
                 shape: headShape,
-                position: cHeadPos
+                position: new CANNON.Vec3(0,0,0)
             });
-            engine.physicsWorld.addBody(body);       
-        super(undefined, body);
+         
+        super(mesh, body);
+        
+        /** @type {THREE.WebXRArrayCamera} */
+        this.cam = engine.renderer.xr.getCamera();
+        
+        this.controllerLeft = engine.input.GetController(0);
+        this.controllerRight = engine.input.GetController(1);
+
+        //this is a parent to the cam and controllers
+        this.group.add(this.cam);
+        this.group.add(this.controllerLeft);
+        this.group.add(this.controllerRight);
+
+        this.mesh.visible = false;
+        
+        /** @type {THREE.Vector3} */
+        this.hold = new THREE.Vector3(0,0,0);
+
+        // 1. Create a variable to hold the hardware data
+        /** @type {Gamepad | null} */
+        this.gamepad = null;
+
+        this.controllerRight.addEventListener('connected', (event) => {
+            if (event.data && event.data.gamepad) {
+                this.gamepad = event.data.gamepad;
+            }
+        });
+
+        // 3. Snap Turn Settings
+        /** @type {boolean} */
+        this.hasSnapped = false;
+        
+        /** @type {number} */
+        this.snapAngle = THREE.MathUtils.degToRad(45); // 45 degree increments
     }
+
     OnUpdate()
     {
-        super.OnUpdate();
-        const headPos = new THREE.Vector3();
-        const cam = engine.renderer.xr.getCamera();
-        cam.getWorldPosition(headPos);
+        //Must not call the super() here to prevent Parenting "Rocket Ship" bug
+        this.cam.getWorldPosition(this.hold);
 
-        const cHeadPos  = new CANNON.Vec3(headPos.x,headPos.y, headPos.z);
-        this.body.position.copy(cHeadPos);
+        this.body.position.copy(this.hold);
+
+        this.mesh.position.copy(this.hold);
+
+        //this.HandleTurn();
     }
+
+    OnCollisionEnter(other, event)
+    {
+        if(other instanceof Projectile)
+        {
+            console.log('player hit');
+        }
+        
+    }
+
+    HandleTurn()
+    {
+        //not working
+    }
+    
 }
 export function LoadGame()
 {

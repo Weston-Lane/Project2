@@ -12,7 +12,7 @@ await engine.Init();
 Objects.LoadGame();
 
 const projectile = new Objects.Projectile();
-
+const head = new Objects.PlayerRig();
 projectile.MakeTarget(head);
 
 
