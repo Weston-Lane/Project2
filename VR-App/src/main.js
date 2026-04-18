@@ -9,7 +9,7 @@ import * as Objects from './Objects/Objects.js'
 
 
 await engine.Init();
-Objects.LoadGame();
+Objects.CreateScene();
 
 const projectile = new Objects.Projectile();
 const head = new Objects.PlayerRig();

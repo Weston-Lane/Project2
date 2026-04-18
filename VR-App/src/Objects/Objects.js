@@ -709,7 +709,7 @@ export class GeneralCollider extends GameObject
         }
     }
 }
-export function LoadGame()
+export function CreateScene()
 {
     new Booth();
     

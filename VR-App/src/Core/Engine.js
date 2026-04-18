@@ -7,6 +7,7 @@ import {Input} from './Input'
 import * as ModelLoader from '../ModelLoads.js'
 import * as AssetLoader from './TextureObjectLoader.js'
 import * as UI from './WorldUI.js';
+import { gameManager } from './GameManager.js';
 
 const FOV = 75;
 const N_PLANE = 0.1;
@@ -98,7 +99,7 @@ class Engine {
         this.initialized = true;
 
         await ModelLoader.LoadAssets();
-
+        
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
 

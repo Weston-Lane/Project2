@@ -56,7 +56,8 @@ class WorldUI
 
     RemoveFromScene()
     {
-        engine.scene.remove(this);
+        this.container.visible = false;
+        
     }
 
 }
@@ -180,8 +181,7 @@ class StartButton extends WorldUI
         this.collider.OnCollisionEnterBehavior = (other, event) =>{
             if(other instanceof Objects.UserProjectile)
             {
-                console.log("start Game");
-                this.RemoveFromScene();
+                this.StartButtonPressed();
             }
         };
         this.collider.body.type = CANNON.Body.STATIC;
@@ -190,6 +190,13 @@ class StartButton extends WorldUI
         this.collider.body.quaternion.copy(this.container.quaternion);
     }
 
+    StartButtonPressed()
+    {
+        console.log("start Game");
+        this.RemoveFromScene();
+        this.collider.body.sleep();
+        engine.RemoveBody(this.collider.body);
+    }
 
 }
 export function LoadUI()
