@@ -235,7 +235,7 @@ export class HandRight extends GameObject
             this.OnTriggerPull();
         });
         this.controller.addEventListener('selectend', () =>{
-            console.log('trigger released');
+            
         })
 
         /** @type {UserProjectile[]} */
@@ -669,10 +669,50 @@ export class PlayerRig extends GameObject
     }
     
 }
+
+export class GeneralCollider extends GameObject
+{
+    constructor()
+    {
+        super(undefined,undefined);
+
+        /** @type {function} */
+        this.OnCollisionEnterBehavior = undefined;
+        this.OnCollisionBehavior = undefined;
+    }
+        /**
+     * 
+     * @param {number} x size of bounding box x,y,z 
+     * @param {number} y 
+     * @param {number} z 
+     */
+    UpdateBody(x,y,z)
+    {
+        this.body.removeShape(this.body.shapes[0]);
+        const newShape = new CANNON.Box(new CANNON.Vec3(x/2,y/2,z/2));
+        this.body.addShape(newShape);
+    }
+
+    OnCollision(event)
+    {
+        if(this.OnCollisionBehavior)
+        {
+            this.OnCollisionBehavior(event);
+        }
+    }
+
+    OnCollisionEnter(other, event)
+    {
+        if(this.OnCollisionEnterBehavior)
+        { 
+            this.OnCollisionEnterBehavior(other, event);
+        }
+    }
+}
 export function LoadGame()
 {
     new Booth();
-    //new Car();
+    
     new HandRight();
     new Plane();
     new Target();

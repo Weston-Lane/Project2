@@ -17,7 +17,7 @@ export class GameObject
         /** @type {THREE.Mesh} */
         this.mesh = mesh;
         /** @type {CANNON.Body} */
-        this.body;
+        this.body = body;
         /** @type {boolean} */
         this.isActive = true;
 
@@ -27,14 +27,18 @@ export class GameObject
         }
         else
         {
-            
+            const geo = new THREE.BoxGeometry(0.5,0.5,0.5,1);
+            const mat = new THREE.MeshBasicMaterial({ colorWrite: false });
+            this.mesh = new THREE.Mesh(geo,mat);
+            this.group.add(this.mesh);
+            this.mesh.visible = false;
         }
 
         if(body)
             { this.body = body; }
         else
         {
-            const boundingBox = new THREE.Box3().setFromObject(mesh);
+            const boundingBox = new THREE.Box3().setFromObject(this.mesh);
             const size = new THREE.Vector3();
             boundingBox.getSize(size);
             const center = new THREE.Vector3();
@@ -50,7 +54,6 @@ export class GameObject
                 shape: shape
             });
 
-            
         }
 
         //this is a weird JS injection pattern. Allows for OnCollision(event) calls to access class methods
