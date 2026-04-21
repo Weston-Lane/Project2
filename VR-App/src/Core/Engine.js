@@ -4,7 +4,8 @@ import ThreeMeshUI from 'three-mesh-ui'
 import * as CANNON from 'cannon-es';
 import CannonDebuger from 'cannon-es-debugger';
 import {Input} from './Input'
-import * as ModelLoader from '../ModelLoads.js'
+import * as ModelLoader from '../Utils/ModelLoads.js'
+import * as AudioLoader from '../Utils/AudioLoads.js'
 import * as AssetLoader from './TextureObjectLoader.js'
 import * as UI from './WorldUI.js';
 import { gameManager } from './GameManager.js';
@@ -99,6 +100,7 @@ class Engine {
         this.initialized = true;
 
         await ModelLoader.LoadAssets();
+        await AudioLoader.LoadAudio();
         
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);

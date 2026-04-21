@@ -1,4 +1,4 @@
-import * as AssetLoader from './Core/TextureObjectLoader'
+import * as AssetLoader from '../Core/TextureObjectLoader'
 
 /* Any models and textures will be loaded in through here. add them via string paths. 
  kind of a shitty implementation but we're on a time crunch */

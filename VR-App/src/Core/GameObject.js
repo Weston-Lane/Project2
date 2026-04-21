@@ -125,4 +125,9 @@ export class GameObject
             this.body.wakeUp();
         }
     }
+
+    SetMaterial(mat)
+    {
+        this.mesh = new THREE.Mesh(this.mesh.geometry, mat);
+    }
 }
