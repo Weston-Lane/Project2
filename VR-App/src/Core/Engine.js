@@ -1,3 +1,11 @@
+// FORCE DISABLE WEBXR LAYERS (Fix for Chrome 147 + Emulator Zombie State)
+if (typeof window !== 'undefined') {
+    // Deleting this constructor forces Three.js and ThreeMeshUI 
+    // to fallback to the stable XRWebGLLayer path.
+    delete window.XRWebGLBinding; 
+    console.log("WebXR Layers disabled to prevent Emulator crash.");
+}
+
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import ThreeMeshUI from 'three-mesh-ui'
@@ -17,7 +25,6 @@ const F_PLANE = 1000;
 const PHY_TIME_STEP = 1/60;
 const MAX_SUB_STEPS = 3;
 const GRAVITY = -9.82;
-
 
 /**
  * Core application engine managing the Three.js WebGL renderer, WebXR loop, 
@@ -104,13 +111,14 @@ class Engine {
         
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
-
+        
         document.body.appendChild( VRButton.createButton( this.renderer ) );
         this.renderer.xr.enabled = true;
         
         this.DebugButtonCreate();
 
         UI.LoadUI();
+
         //*****************UPDATE LOOP*************************
         this.renderer.setAnimationLoop((time, frame) =>{
 
@@ -142,6 +150,7 @@ class Engine {
         light.castShadow = true;
 
         this.scene.add(light);
+
 
         console.log("Engine Initialized");
 
