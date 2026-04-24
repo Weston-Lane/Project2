@@ -49,6 +49,15 @@ class WorldUI
 
     }
 
+    Start()
+    {
+
+    }
+
+    Stop()
+    {
+
+    }
     AddToScene()
     {
         engine.scene.add(this.container);
@@ -117,24 +126,35 @@ class TimerUI extends WorldUI
         this.container.position.set(4,5,-5);
         this.container.rotation.x = 0.55;
         this.container.lookAt(0,0,0);
-
+        this.startTimer = false;        
+        this.startTime = 0;
         gameManager.UI['timer'] = this;
 
+    }
+
+    Start()
+    {
+        super.Start();
+        this.startTime = gameManager.startTime;
     }
 
     OnUpdate(time)
     {
         
         super.OnUpdate();
-        const sec = Math.floor(time / 1000);
-        const secR = sec % 60;
-        const min = Math.floor(sec / 60);
+        if(gameManager.isPlaying)
+        {
+            
+            const sec = Math.floor(time / 1000);
+            const secR = Math.floor(sec - this.startTime) % 60;
+            const min = Math.floor(sec / 60);
 
-        const clockMin = min.toString().padStart(2, '0');
-        const clockSec = secR.toString().padStart(2, '0');
-        this.text.set({
-            content: `Time: ${clockMin}:${clockSec}`,
-        });
+            const clockMin = min.toString().padStart(2, '0');
+            const clockSec = secR.toString().padStart(2, '0');
+            this.text.set({
+                content: `Time: ${clockMin}:${clockSec}`,
+            });
+        }
     }
 
     AddToScene()
@@ -193,16 +213,114 @@ class StartButton extends WorldUI
     StartButtonPressed()
     {
         console.log("start Game");
+        gameManager.StartGame();
         this.RemoveFromScene();
         this.collider.body.sleep();
         engine.RemoveBody(this.collider.body);
     }
 
 }
+
+class LoseUI extends WorldUI
+{
+    constructor()
+    {
+        
+        super();
+        this.container.set({
+            width: 4,
+            height: 3,
+            padding: 0.2,
+            fontFamily: AssetLoader.GetPath('Fonts/Rye.json'),
+            fontTexture: AssetLoader.GetPath('Fonts/Rye.png'),
+            fontSize: .5,
+        });
+
+        this.text.set({
+            content: "GAME OVER! Thanks for Playing CarniVRal",
+        });
+
+        this.container.position.set(0,4,-5);
+        this.container.rotation.x = 0.55;
+        this.container.lookAt(0,0,0);
+
+        gameManager.UI['lose'] = this;
+    }
+
+    AddToScene()
+    {
+        super.AddToScene();
+    }
+}
+
+class RestartButton extends WorldUI
+{
+    constructor()
+    {
+        super(false);
+
+        this.container.set({
+            width: 2,   
+            height: 2,  
+            padding: 0.2,
+            fontFamily: AssetLoader.GetPath('Fonts/Rye.json'),
+            fontTexture: AssetLoader.GetPath('Fonts/Rye.png'),
+            fontSize: 0.35,
+            
+            backgroundColor: new THREE.Color(0xffffff), // White center
+            backgroundOpacity: 1.0,
+            borderRadius: 1.0, 
+            borderWidth: 0.2,
+            borderColor: new THREE.Color(0xff0000), 
+            fontColor: new THREE.Color(0xff0000), 
+            justifyContent: 'center',
+            alignContent: 'center'
+        });
+
+        this.text.set({
+            content: "Restart",
+        });
+
+        this.container.position.set(0,1,-5);
+        
+
+        gameManager.UI['restartButton'] = this;
+
+        this.collider = new Objects.GeneralCollider();
+        this.collider.OnCollisionEnterBehavior = (other, event) =>{
+            if(other instanceof Objects.UserProjectile)
+            {
+                this.ButtonPressed();
+            }
+        };
+        this.collider.body.type = CANNON.Body.STATIC;
+        this.collider.UpdateBody(2,2,0.2);
+        this.collider.body.position.copy(this.container.position);
+        this.collider.body.quaternion.copy(this.container.quaternion);
+    }
+
+    ButtonPressed()
+    {
+        console.log("Restart Game");
+        gameManager.RestartGame();
+        this.RemoveFromScene();
+        this.collider.body.sleep();
+        engine.RemoveBody(this.collider.body);
+    }
+
+    AddToScene()
+    {
+        super.AddToScene();
+    }
+
+}
+
 export function LoadUI()
 {
     new ScoreUI().AddToScene();
     new TimerUI().AddToScene();
     new StartButton().AddToScene();
+    new LoseUI();
+    new RestartButton();
 }
 

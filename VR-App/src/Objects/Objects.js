@@ -4,7 +4,8 @@ import {engine} from '../Core/Engine.js'
 import { gameManager } from '../Core/GameManager.js';
 import { GameObject } from '../Core/GameObject.js';
 import * as AssetLoader from '../Core/TextureObjectLoader.js';
-import { DEG2RAD } from 'three/src/math/MathUtils.js';
+import { DEG2RAD, RAD2DEG } from 'three/src/math/MathUtils.js';
+import { OculusHandPointerModel } from 'three/examples/jsm/Addons.js';
 
 
 
@@ -25,53 +26,83 @@ export class Booth extends GameObject {
         this.body.type = CANNON.Body.STATIC;
         this.body.position.set(0,2.5,-8);
         this.body.quaternion.setFromEuler(0,DEG2RAD * 180, 0);
-        /** @type {GameObject | null} */
-        this.targetObj = null;
         
-        /** @type {number} */
-        this.moveSpeed = 1;
-    }
-
-    /**
-     * @returns {void}
-     */
-    OnUpdate()
-    {
-        super.OnUpdate();
-
-        
-        if(this.body.position.y < -3)
-        { 
-            this.body.position.y = 5
-            this.body.velocity.setZero();
-        }
-        
-        if(this.targetObj)
-        {
-            const targetPos = this.targetObj.body.position;
-            const currPos = this.body.position;
-
-            const dirVec = new CANNON.Vec3();
-            targetPos.vsub(currPos, dirVec);
-
-            dirVec.normalize();
-
-            dirVec.scale(this.moveSpeed, dirVec);
-
-            this.body.applyForce(dirVec, this.body.position);
-        }
-
     }
     
-    /**
-     * @param {GameObject} obj 
-     * @returns {void}
-     */
-    AddTarget(obj)
-    {
-        this.targetObj = obj;
-    }
+}
 
+export class Booth1 extends GameObject {
+    
+    /**
+     * @constructor
+     */
+    constructor()
+    {
+        const mesh = AssetLoader.AssetCache.models['booth_blue'].clone();
+        mesh.scale.set(0.4,0.2,0.2);
+
+        super(mesh, undefined);
+        this.body.type = CANNON.Body.STATIC;
+        this.body.position.set(8.5,2.5,0.5);
+        this.body.quaternion.setFromEuler(0,DEG2RAD * 90, 0);
+        
+    }
+    
+}
+
+export class Booth2 extends GameObject {
+    
+    /**
+     * @constructor
+     */
+    constructor()
+    {
+        const mesh = AssetLoader.AssetCache.models['booth_forest_green'].clone();
+        mesh.scale.set(0.4,0.2,0.2);
+
+        super(mesh, undefined);
+        this.body.type = CANNON.Body.STATIC;
+        this.body.position.set(-8.5,2.5,0.5);
+        this.body.quaternion.setFromEuler(0,DEG2RAD * 270, 0);
+        
+    }
+    
+}
+export class Booth3 extends GameObject {
+    
+    /**
+     * @constructor
+     */
+    constructor()
+    {
+        const mesh = AssetLoader.AssetCache.models['booth'].clone();
+        mesh.scale.set(0.4,0.2,0.2);
+
+        super(mesh, undefined);
+        this.body.type = CANNON.Body.STATIC;
+        this.body.position.set(-13,2.5,-8);
+        this.body.quaternion.setFromEuler(0,DEG2RAD * 45, 0);
+        
+    }
+    
+}
+export class Booth4 extends GameObject {
+    
+    /**
+     * @constructor
+     */
+    constructor()
+    {
+        const mesh = AssetLoader.AssetCache.models['booth'].clone();
+        mesh.scale.set(0.4,0.2,0.2);
+
+        super(mesh, undefined);
+        this.body.type = CANNON.Body.STATIC;
+        this.body.position.set(13,2.5,-8);
+        this.body.quaternion.setFromEuler(0,DEG2RAD * -45, 0);
+        
+    }
+    
 }
 
 /**
@@ -142,7 +173,7 @@ export class UserProjectile extends GameObject
         this.tarDir = new CANNON.Vec3(0,0,0);
         
         /** @type {number} */
-        this.speed = 5;
+        this.speed = 10;
         
         /** @type {number} */
         this.totTime = 0;
@@ -193,6 +224,16 @@ export class UserProjectile extends GameObject
         this.body.quaternion.copy(controllerQuaternion);
     }
 
+    OnCollisionEnter(other, event)
+    {
+        super.OnCollisionEnter(other, event);
+
+        if(other instanceof Target && other.isActive)
+        {
+            this.SetActive(false);
+            this.totTime = 0;
+        }
+    }
 }
 
 /**
@@ -387,9 +428,10 @@ export class Target extends GameObject
         super(mesh,undefined);
 
         
-        this.body.type = CANNON.Body.STATIC;
+        this.body.type = CANNON.Body.KINEMATIC;
         this.body.mass = 0;
-        this.body.position.set(0,3,-6);
+        
+        this.body.position.set(0,0,0);
         const rads = THREE.MathUtils.degToRad(90);
         this.body.quaternion.setFromEuler(rads,0,0);
         
@@ -401,6 +443,7 @@ export class Target extends GameObject
     OnUpdate()
     {
         super.OnUpdate();
+
     }
 
     OnCollisionEnter(other, event)
@@ -410,11 +453,97 @@ export class Target extends GameObject
         if(other instanceof UserProjectile && other.isActive)
         {
             console.log('Target hit');
-            other.SetActive(false);
+            this.SetActive(false);
             gameManager.AddScore(1);
         }
         
     }
+}
+
+export class TargetCollection extends GameObject
+{
+    constructor()
+    {
+        super(undefined,undefined);
+        /** @type{Target[]} */
+        this.targets = []
+
+        this.targetNum = 12;
+
+        this.startingPos = new CANNON.Vec3(-5, 3, -10);
+
+        this.offsetXScale = 2;
+        this.offsetYScale = -1.5;
+        for(let i = 0; i<this.targetNum; i++)
+        {
+            const target = new Target();
+            target.SetActive(false);
+            this.targets.push(target);
+            
+        }
+        this.SetAllTargetsPos();
+
+        /** @type {number} */
+        this.currTargets = 1;
+
+        /** @type {number} */
+        this.maxTargetCombo = 5;
+    }
+
+    OnUpdate()
+    {
+        super.OnUpdate();
+        if(this.currTargets <= 0 && gameManager.isPlaying)
+        {
+            this.NextTargets();
+        }
+    }
+
+    SetAllTargetsPos()
+    {
+        for(let i = 0; i < this.targetNum; i++)
+        {
+            
+            let offset = undefined;
+            if(i < this.targetNum/2)
+            {
+                offset = new CANNON.Vec3(
+                                this.startingPos.x + (i * this.offsetXScale),
+                                this.startingPos.y, 
+                                this.startingPos.z);
+            }
+            else
+            {
+                offset = new CANNON.Vec3(
+                                this.startingPos.x + (((this.targetNum - 1) - i) * this.offsetXScale),
+                                this.startingPos.y + this.offsetYScale, 
+                                this.startingPos.z);
+            }
+
+            this.targets[i].body.position.set(offset.x,offset.y,offset.z);
+        }
+    }
+
+    NextTargets()
+    {
+        const ranMax = Math.floor(Math.random() * this.maxTargetCombo) + 1;
+        this.currTargets = ranMax;
+        console.log(this.currTargets);
+        for(let i = 0; i < ranMax; i++)
+        {
+            let ran = Math.floor(Math.random() * this.targetNum);
+            if(this.targets[ran].isActive)
+                //if the random tar exists, remove from curr tar
+            {
+                this.currTargets -= 1;
+            }
+            this.targets[ran].SetActive(true);
+            console.log(this.targets[ran]);
+        }
+
+    }
+
+
 }
 
 /**
@@ -432,25 +561,17 @@ export class Projectile extends GameObject
         const mat = new THREE.MeshLambertMaterial({color: 0xff7700});
         const mesh = new THREE.Mesh(geo, mat);
 
-        const spawnPos = new CANNON.Vec3(0, 3, -10);
         const shape = new CANNON.Box(new CANNON.Vec3(dim[0]/2, dim[1]/2, dim[3]/2));
         const body = new CANNON.Body({
             mass: 0, // > 0 means dynamic (affected by gravity)
             shape: shape,
             type: CANNON.Body.DYNAMIC,
-            position: spawnPos
         });
 
         super(mesh, body);
-
-        /** @type {GameObject | null} */
-        this.target = null;
         
         /** @type {number} */
         this.speed = 5;
-        
-        /** @type {number} */
-        this.fireTime = 2;
         
         /** @type {number} */
         this.despawnTime = 4;
@@ -465,10 +586,14 @@ export class Projectile extends GameObject
         this.isInAir = false;
         
         /** @type {CANNON.Vec3} */
-        this.spawnPos = spawnPos;
+        //this.spawnPos = spawnPos;
         
         /** @type {CANNON.Vec3 | undefined} */
-        this.tarDir = undefined;
+        this.tarDir = new CANNON.Vec3(0,0,0);
+
+        /** @type {number} */
+        this.holdTime = 0;
+
     }
 
     /**
@@ -478,41 +603,38 @@ export class Projectile extends GameObject
     {
         super.OnUpdate();
         
-        if(!this.isFired || this.isInAir)
+        if(this.isInAir)
             { this.totTime += engine.timer.deltaTime; }   
         
-        if(this.target && this.isFired && !this.isInAir)
+        if(!this.isInAir && this.tarDir)
         {
             this.isInAir = true;
-            this.tarDir = this.target.body.position.vsub(this.body.position);
-            this.tarDir.normalize();
-            this.body.quaternion.setFromVectors(new CANNON.Vec3(0,0,1),this.tarDir);
+            
         }
-        if(this.isInAir)
+        if(this.isInAir && this.totTime >= this.holdTime)
         {
             this.body.position.addScaledVector(this.speed * engine.timer.deltaTime, 
                                             this.tarDir, this.body.position);
         }
-        if(!this.isFired && this.totTime >= this.fireTime )
+        if(this.isInAir && (this.totTime + this.holdTime) >= this.despawnTime)
         {
-            this.isFired = true;
-        }
-        if(this.isInAir && this.totTime >= this.despawnTime)
-        {
-            this.body.position.copy(this.spawnPos);
-            this.isFired = false;
+            this.SetActive(false);
             this.totTime = 0;
             this.isInAir = false;
+            this.isFired = false;
+            this.holdTime = 0;
         }
     }
 
     /**
-     * @param {GameObject} obj 
+     * @param {CANNON.Vec3} dir  
      * @returns {void}
      */
-    MakeTarget(obj)
+    Fire(dir)
     {
-        this.target = obj
+        this.tarDir.copy(dir);
+        this.tarDir.normalize();
+        this.isFired = true;
     }
 
     /**
@@ -523,12 +645,13 @@ export class Projectile extends GameObject
     {
         super.OnCollision(event);
 
-        if(event.body.gameObject == this.target.body.gameObject)
+        if(event.body.gameObject == gameManager.player.body.gameObject)
         {           
-            this.body.position.copy(this.spawnPos);
+            this.SetActive(false);
             this.isFired = false;
             this.totTime = 0;
             this.isInAir = false;
+            this.holdTime = 0;
         }        
 
     }
@@ -537,14 +660,15 @@ export class Projectile extends GameObject
 /**
  * @class
  */
-export class ProjectileSpawner
+export class ProjectileSpawner extends GameObject
 {
     constructor()
     {
+        super(undefined,undefined);
         /** @type {Projectile[]} */
         this.projectilePool = [];
         /** @type {number} */
-        this.maxProjectiles = 30;
+        this.maxProjectiles = 50;
         //Fill Pool
         for(let i = 0; i<this.maxProjectiles; i++)
         {
@@ -554,17 +678,42 @@ export class ProjectileSpawner
         }
 
         /** @type {CANNON.Vec3} */
-        this.spawnPos = new CANNON.Vec3(0, 5, -7)
+        this.spawnPos = new CANNON.Vec3(0, 3.5, -7)
 
         /** @type {Array<() => void>} */
         this.attacks = [
             () => this.StraightFire(),
+            () => this.BurstFire(),
+            () => this.RapidFire(),
         ];
-    
-    }
+
+        
+        /** @type {number} */
+        this.attackTime = 0;
+
+        /** @type {number} */
+        this.downTime = 2;
+
+        /** @type {number} */
+        this.totTime = 0;
+        
+        this.startGame = false;
+    }   
 
     OnUpdate()
     {
+        super.OnUpdate();
+        
+        if(gameManager.isPlaying)
+        {
+            this.totTime += engine.timer.deltaTime;
+        
+            if(this.totTime >= this.downTime + this.attackTime)
+            {
+                this.DoRandomAttack();
+                this.totTime = 0;
+            }
+        }
 
     }
 
@@ -572,7 +721,72 @@ export class ProjectileSpawner
         /************ATTACKS************ */
         StraightFire()
         {
-            console.log('Straight Fire');
+            let attackTime = 1;
+            this.attackTime = attackTime;
+            const projectile = this.FindFreeProjectile();
+            projectile.SetActive(true);
+
+            projectile.body.position.copy(this.spawnPos);
+            const tarDir = gameManager.player.body.position.vsub(projectile.body.position);
+            projectile.body.quaternion.setFromVectors(new CANNON.Vec3(0,0,1),tarDir);
+            
+            projectile.Fire(tarDir);
+            console.log('straightFire')
+        }
+
+        BurstFire()
+        {
+            let attackTime = 1;
+            let numShots = 4;
+            this.attackTime = attackTime;
+            let holdTime = 0;
+            let holdTimeInc = 0.3;
+            for(let i = 0; i < numShots; i++)
+            {
+                const projectile = this.FindFreeProjectile();
+                projectile.SetActive(true);
+
+                projectile.body.position.copy(this.spawnPos);
+                const tarDir = gameManager.player.body.position.vsub(projectile.body.position);
+                projectile.body.quaternion.setFromVectors(new CANNON.Vec3(0,0,1),tarDir);                
+                projectile.holdTime = holdTime;
+                holdTime += holdTimeInc;
+                
+                projectile.Fire(tarDir);
+                
+            }
+            console.log('burst fire')
+        }
+
+        RapidFire()
+        {
+            let attackTime = 1;
+            let numShots = 20;
+            this.attackTime = attackTime;
+            let holdTime = 0;
+            let holdTimeInc = 0.1;
+            let rotate = 0;
+            let rotateInc = 5;
+            const playerPos = gameManager.player.body.position;
+            for(let i=0;i<numShots;i++)
+            {
+                const projectile = this.FindFreeProjectile();
+                projectile.SetActive(true);
+
+                projectile.body.position.copy(this.spawnPos);
+                const tarDir = new CANNON.Vec3(-7,playerPos.y-1,playerPos.z).vsub(projectile.body.position);
+                const rotateQuat = new CANNON.Quaternion();
+                rotateQuat.setFromEuler(0,DEG2RAD * rotate, 0);
+                rotateQuat.vmult(tarDir,tarDir);
+                projectile.body.quaternion.setFromVectors(new CANNON.Vec3(0,0,1),tarDir);
+
+                rotate += rotateInc;
+                projectile.holdTime = holdTime;
+                holdTime += holdTimeInc;
+                
+                projectile.Fire(tarDir);
+            }
+            console.log('Rapid Fire');
         }
         /************************ */
     // #endregion
@@ -581,6 +795,18 @@ export class ProjectileSpawner
     {
         const ran = Math.floor(Math.random() * this.attacks.length);
         this.attacks[ran]();
+    }
+
+    FindFreeProjectile()
+    {
+        for(const projectile of this.projectilePool)
+        {
+            if(!projectile.isActive)
+            {
+                return projectile;
+            }
+        }
+        return undefined;
     }
 }
 
@@ -659,6 +885,7 @@ export class PlayerRig extends GameObject
         if(other instanceof Projectile)
         {
             console.log('player hit');
+            gameManager.LoseGame();
         }
         
     }
@@ -709,12 +936,4 @@ export class GeneralCollider extends GameObject
         }
     }
 }
-export function CreateScene()
-{
-    new Booth();
-    
-    new HandRight();
-    new Plane();
-    new Target();
-    
-}
+

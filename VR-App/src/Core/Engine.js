@@ -111,14 +111,13 @@ class Engine {
         
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
-        
+
         document.body.appendChild( VRButton.createButton( this.renderer ) );
         this.renderer.xr.enabled = true;
         
         this.DebugButtonCreate();
 
         UI.LoadUI();
-
         //*****************UPDATE LOOP*************************
         this.renderer.setAnimationLoop((time, frame) =>{
 
@@ -151,7 +150,6 @@ class Engine {
 
         this.scene.add(light);
 
-
         console.log("Engine Initialized");
 
     }
@@ -167,8 +165,7 @@ class Engine {
 
         if(this.debugEnabled)
         { 
-            this.cannonDebugger.update();
-            
+            this.cannonDebugger.update();        
         }
 
         this.timer.update(time);
@@ -179,7 +176,7 @@ class Engine {
         this.deadBodies.forEach(body => this.physicsWorld.removeBody(body));
         this.deadBodies.length = 0; // must empty array
 
-        this.updatableObjs.forEach(obj => obj.OnUpdate(time, frame));
+        this.updatableObjs.forEach(obj => obj.isActive && obj.OnUpdate(time, frame));
 
         this.updatableUI.forEach(ui => ui.OnUpdate(time));
 
