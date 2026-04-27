@@ -33,5 +33,11 @@ export async function LoadAssets()
     const SPIKE_BALL = AssetLoader.GetPath('models/Spikey.glb');
     AssetLoader.AssetCache.models['spike_ball'] =
         await AssetLoader.LoadTextureObjectGLB(SPIKE_BALL);
-
+    const FLOOR_MODEL = AssetLoader.GetPath('models/woodfloor.obj');
+    AssetLoader.AssetCache.models['woodfloor'] =
+        await AssetLoader.LoadTextureObjectOBJ(FLOOR_MODEL, {
+            diffuse: AssetLoader.GetPath('models/Textures/agedplanks1-bl/agedplanks1-albedo.png'),
+            normal: AssetLoader.GetPath('models/Textures/agedplanks1-bl/agedplanks1-normal4-ogl.png'),
+            roughness: AssetLoader.GetPath('models/Textures/agedplanks1-bl/agedplanks1-roughness.png')
+        });
 }

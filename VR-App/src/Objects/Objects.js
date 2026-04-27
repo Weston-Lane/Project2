@@ -115,9 +115,7 @@ export class Plane extends GameObject
      */
     constructor()
     {
-        const geo = new THREE.PlaneGeometry(50,50);
-        const mat = new THREE.MeshLambertMaterial({color: 0x999999});
-        const mesh = new THREE.Mesh(geo, mat);
+        const mesh = AssetLoader.AssetCache.models['woodfloor'].clone();
 
         const shape = new CANNON.Plane();
         const body = new CANNON.Body({
