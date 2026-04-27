@@ -9,23 +9,18 @@ export async function LoadAssets()
     const CAR_MODEL = AssetLoader.GetPath('models/vehicle.glb');
     AssetLoader.AssetCache.models['vehicle'] = 
         await AssetLoader.LoadTextureObjectGLB(CAR_MODEL);
-
     const PIPE_MODEL = AssetLoader.GetPath('models/pipe.glb');
     AssetLoader.AssetCache.models['pipe'] = 
         await AssetLoader.LoadTextureObjectGLB(PIPE_MODEL);
-
     const TARGET_MODEL = AssetLoader.GetPath('models/Target.glb');
     AssetLoader.AssetCache.models['target'] = 
         await AssetLoader.LoadTextureObjectGLB(TARGET_MODEL);
-
     const GUN_MODEL = AssetLoader.GetPath('models/gunjacob.glb');
     AssetLoader.AssetCache.models['gun'] = 
         await AssetLoader.LoadTextureObjectGLB(GUN_MODEL);
-
     const BULLET_MODEL = AssetLoader.GetPath('models/bullet.glb');
     AssetLoader.AssetCache.models['bullet'] =
         await AssetLoader.LoadTextureObjectGLB(BULLET_MODEL);
-
     const BOOTH_MODEL = AssetLoader.GetPath('models/ActualBooth.glb');
     AssetLoader.AssetCache.models['booth'] =
         await AssetLoader.LoadTextureObjectGLB(BOOTH_MODEL);
