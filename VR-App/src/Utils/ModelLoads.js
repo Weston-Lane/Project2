@@ -35,5 +35,8 @@ export async function LoadAssets()
     const BOOTH2_MODEL = AssetLoader.GetPath('models/ActualBooth_forest_green.glb');
     AssetLoader.AssetCache.models['booth_forest_green'] =
         await AssetLoader.LoadTextureObjectGLB(BOOTH2_MODEL);
+    const SPIKE_BALL = AssetLoader.GetPath('models/Spikey.glb');
+    AssetLoader.AssetCache.models['spike_ball'] =
+        await AssetLoader.LoadTextureObjectGLB(SPIKE_BALL);
 
 }

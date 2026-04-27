@@ -478,8 +478,7 @@ export class TargetCollection extends GameObject
         {
             const target = new Target();
             target.SetActive(false);
-            this.targets.push(target);
-            
+            this.targets.push(target);         
         }
         this.SetAllTargetsPos();
 
@@ -543,6 +542,13 @@ export class TargetCollection extends GameObject
 
     }
 
+    RemoveAllTargets()
+    {
+        this.targets.forEach(target =>{
+            target.SetActive(false);
+        })
+    }
+
 
 }
 
@@ -557,19 +563,24 @@ export class Projectile extends GameObject
     constructor()
     {
         const dim = [0.1,0.1,0.4,1];
-        const geo = new THREE.BoxGeometry(dim[0],dim[1],dim[2],dim[3]);
-        const mat = new THREE.MeshLambertMaterial({color: 0xff7700});
-        const mesh = new THREE.Mesh(geo, mat);
+        // const geo = new THREE.BoxGeometry(dim[0],dim[1],dim[2],dim[3]);
+        // const mat = new THREE.MeshLambertMaterial({color: 0xff7700});
+        // const mesh = new THREE.Mesh(geo, mat);
 
         const shape = new CANNON.Box(new CANNON.Vec3(dim[0]/2, dim[1]/2, dim[3]/2));
         const body = new CANNON.Body({
             mass: 0, // > 0 means dynamic (affected by gravity)
             shape: shape,
-            type: CANNON.Body.DYNAMIC,
+            type: CANNON.Body.KINEMATIC,
         });
 
-        super(mesh, body);
+        const mesh = AssetLoader.AssetCache.models['spike_ball'].clone();
+        mesh.scale.multiplyScalar(0.2);
+        super(mesh, undefined);
+        this.body.mass = 0;
+        this.body.type = CANNON.Body.KINEMATIC;
         
+
         /** @type {number} */
         this.speed = 5;
         

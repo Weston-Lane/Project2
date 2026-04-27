@@ -67,13 +67,15 @@ class GameManager
 
     RestartGame()
     {
-        // this.UI['lose'].RemoveFromScene();
-        // this.UI['restartButton'].RemoveFromScene();
-        // this.UI['score']?.text.set({
-        //     content: 'Score: 0'
-        // });
-        // this.targetCollection.currTargets = 1;
-        // this.StartGame();
+        console.log('restart game');
+        this.UI['lose'].RemoveFromScene();
+        this.UI['score']?.text.set({
+            content: 'Score: 0'
+        });
+        this.score = 0;
+        this.targetCollection.currTargets = 1;
+        this.targetCollection.RemoveAllTargets();
+        this.StartGame();
     }
 
     CreateScene()

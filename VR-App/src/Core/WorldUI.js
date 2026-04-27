@@ -61,6 +61,7 @@ class WorldUI
     AddToScene()
     {
         engine.scene.add(this.container);
+        this.container.visible = true;
     }
 
     RemoveFromScene()
@@ -184,7 +185,7 @@ class StartButton extends WorldUI
             borderColor: new THREE.Color(0xff0000), 
             fontColor: new THREE.Color(0xff0000), 
             justifyContent: 'center',
-            alignContent: 'center'
+            alignItems: 'center'
         });
 
         this.text.set({
@@ -274,7 +275,7 @@ class RestartButton extends WorldUI
             borderColor: new THREE.Color(0xff0000), 
             fontColor: new THREE.Color(0xff0000), 
             justifyContent: 'center',
-            alignContent: 'center'
+            alignItems: 'center'
         });
 
         this.text.set({
@@ -297,20 +298,31 @@ class RestartButton extends WorldUI
         this.collider.UpdateBody(2,2,0.2);
         this.collider.body.position.copy(this.container.position);
         this.collider.body.quaternion.copy(this.container.quaternion);
+
+        this.RemoveFromScene();
     }
 
     ButtonPressed()
     {
-        console.log("Restart Game");
-        gameManager.RestartGame();
         this.RemoveFromScene();
-        this.collider.body.sleep();
-        engine.RemoveBody(this.collider.body);
+        gameManager.RestartGame();
     }
 
     AddToScene()
     {
         super.AddToScene();
+        this.collider.body.wakeUp();
+        console.log('body');
+        engine.physicsWorld.addBody(this.collider.body);
+        
+        
+    }
+
+    RemoveFromScene()
+    {
+        super.RemoveFromScene();
+        this.collider.body.sleep();
+        engine.RemoveBody(this.collider.body);
     }
 
 }
