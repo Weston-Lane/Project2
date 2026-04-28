@@ -16,7 +16,6 @@ import * as ModelLoader from '../Utils/ModelLoads.js'
 import * as AudioLoader from '../Utils/AudioLoads.js'
 import * as AssetLoader from './TextureObjectLoader.js'
 import * as UI from './WorldUI.js';
-import { gameManager } from './GameManager.js';
 
 const FOV = 75;
 const N_PLANE = 0.1;

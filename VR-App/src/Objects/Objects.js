@@ -6,6 +6,7 @@ import { GameObject } from '../Core/GameObject.js';
 import * as AssetLoader from '../Core/TextureObjectLoader.js';
 import { DEG2RAD, RAD2DEG } from 'three/src/math/MathUtils.js';
 import { OculusHandPointerModel } from 'three/examples/jsm/Addons.js';
+import { audioManager } from '../Core/AudioManager.js';
 
 
 
@@ -194,6 +195,10 @@ export class UserProjectile extends GameObject
         
         /** @type {number} */
         this.decayTime = 3;
+
+        this.audio.setBuffer(audioManager.soundLibrary['gunFire']);
+        this.audio.setLoop(false);
+        this.audio.setVolume(0.3);
     }
 
     /**
@@ -233,6 +238,7 @@ export class UserProjectile extends GameObject
      */
     FireProjectile(forwardAxis, controllerQuaternion)
     {
+        this.audio.play();
         this.SetActive(true);
         this.tarDir = forwardAxis;
         this.body.quaternion.copy(controllerQuaternion);
@@ -314,6 +320,8 @@ export class HandRight extends GameObject
 
         /** @type {CANNON.Vec3()} offset so the bullet spawns at barrel*/
         this.localOffset = new CANNON.Vec3(0, 0.05, -0.2);
+
+
     }
 
     /**
@@ -336,7 +344,6 @@ export class HandRight extends GameObject
     {
         if(this.fireDeltaTime <= 1/this.fireRate)
         {
-            console.log('firerate too slow. STOP SPAMMIN CLICKS');
             return;
         }
 
@@ -345,7 +352,7 @@ export class HandRight extends GameObject
 
         forwardDir.applyQuaternion(this.body.quaternion);
         forwardDir.normalize();
-
+        
         for(const projectile of this.projectilePool)
         {
             if(!projectile.isActive)
@@ -355,6 +362,7 @@ export class HandRight extends GameObject
                 projectile.body.position.copy(this.body.position.vadd(rotateOffset));
 
                 projectile.FireProjectile(forwardDir, this.controller.quaternion);
+                
                 return;
             }
         }
@@ -466,7 +474,6 @@ export class Target extends GameObject
 
         if(other instanceof UserProjectile && other.isActive)
         {
-            console.log('Target hit');
             this.SetActive(false);
             gameManager.AddScore(1);
         }
@@ -542,7 +549,6 @@ export class TargetCollection extends GameObject
     {
         const ranMax = Math.floor(Math.random() * this.maxTargetCombo) + 1;
         this.currTargets = ranMax;
-        console.log(this.currTargets);
         for(let i = 0; i < ranMax; i++)
         {
             let ran = Math.floor(Math.random() * this.targetNum);
@@ -552,7 +558,6 @@ export class TargetCollection extends GameObject
                 this.currTargets -= 1;
             }
             this.targets[ran].SetActive(true);
-            console.log(this.targets[ran]);
         }
 
     }
@@ -590,7 +595,7 @@ export class Projectile extends GameObject
         });
 
         const mesh = AssetLoader.AssetCache.models['spike_ball'].clone();
-        mesh.scale.multiplyScalar(0.2);
+        mesh.scale.multiplyScalar(0.08);
         super(mesh, undefined);
         this.body.mass = 0;
         this.body.type = CANNON.Body.KINEMATIC;
@@ -620,6 +625,11 @@ export class Projectile extends GameObject
         /** @type {number} */
         this.holdTime = 0;
 
+        this.audio.setBuffer(audioManager.soundLibrary['cannonShot']);
+        this.audio.setLoop(false);
+        this.audio.setVolume(0.1);
+
+        this.playAudioGate = true;
     }
 
     /**
@@ -639,6 +649,11 @@ export class Projectile extends GameObject
         }
         if(this.isInAir && this.totTime >= this.holdTime)
         {
+            if(this.playAudioGate)
+            {
+                this.audio.play();
+            }
+            this.playAudioGate = false;
             this.body.position.addScaledVector(this.speed * engine.timer.deltaTime, 
                                             this.tarDir, this.body.position);
         }
@@ -649,7 +664,9 @@ export class Projectile extends GameObject
             this.isInAir = false;
             this.isFired = false;
             this.holdTime = 0;
+            this.playAudioGate = true;
         }
+
     }
 
     /**
@@ -658,6 +675,7 @@ export class Projectile extends GameObject
      */
     Fire(dir)
     {
+        
         this.tarDir.copy(dir);
         this.tarDir.normalize();
         this.isFired = true;
@@ -723,14 +741,24 @@ export class ProjectileSpawner extends GameObject
         /** @type {number} */
         this.totTime = 0;
         
-        this.startGame = false;
+        this.spawn1 = false;
+        this.spawn2 = false;
+
+        this.spawner1Time = 3;
+        this.spawner2Time = 6;
+
+        this.cloneOffset = 4;
+
+        this.isOn = false;
+
+        this.spawnTime = 0;
     }   
 
     OnUpdate()
     {
         super.OnUpdate();
         
-        if(gameManager.isPlaying)
+        if(gameManager.isPlaying && this.isOn)
         {
             this.totTime += engine.timer.deltaTime;
         
@@ -739,6 +767,17 @@ export class ProjectileSpawner extends GameObject
                 this.DoRandomAttack();
                 this.totTime = 0;
             }
+            
+        }
+
+        const timeSinceStart = engine.timer.getElapsed() - gameManager.startTime;
+        if(timeSinceStart > this.spawnTime)
+        {
+            this.isOn = true;
+        }
+        if(!gameManager.isPlaying)
+        {
+            this.isOn = false;
         }
 
     }
@@ -757,7 +796,7 @@ export class ProjectileSpawner extends GameObject
             projectile.body.quaternion.setFromVectors(new CANNON.Vec3(0,0,1),tarDir);
             
             projectile.Fire(tarDir);
-            console.log('straightFire')
+            
         }
 
         BurstFire()
@@ -781,7 +820,7 @@ export class ProjectileSpawner extends GameObject
                 projectile.Fire(tarDir);
                 
             }
-            console.log('burst fire')
+            
         }
 
         RapidFire()
@@ -812,7 +851,6 @@ export class ProjectileSpawner extends GameObject
                 
                 projectile.Fire(tarDir);
             }
-            console.log('Rapid Fire');
         }
         /************************ */
     // #endregion
@@ -910,7 +948,6 @@ export class PlayerRig extends GameObject
     {
         if(other instanceof Projectile)
         {
-            console.log('player hit');
             gameManager.LoseGame();
         }
         

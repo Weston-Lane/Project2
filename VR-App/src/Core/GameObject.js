@@ -22,7 +22,7 @@ export class GameObject
         /** @type {boolean} */
         this.isActive = true;
 
-        /** @type {} */
+        /** @type {THREE.Audio} */
         this.audio = new THREE.Audio(audioManager.audioListener);
 
         if(mesh)

@@ -147,8 +147,9 @@ class TimerUI extends WorldUI
         {
             
             const sec = Math.floor(time / 1000);
-            const secR = Math.floor(sec - this.startTime) % 60;
-            const min = Math.floor(sec / 60);
+            const runTimeS = sec - this.startTime;
+            const secR = Math.floor(runTimeS) % 60;
+            const min = Math.floor((runTimeS) / 60);
 
             const clockMin = min.toString().padStart(2, '0');
             const clockSec = secR.toString().padStart(2, '0');

@@ -9,8 +9,8 @@ audioManager.Init();
 gameManager.Init();
 
 
-const sound = new THREE.Audio(AudioManager.audioManager.audioListener);
-sound.setBuffer(AudioManager.audioManager.soundLibrary['gunFire']);
-sound.setLoop(false);
-sound.setVolume(0.5);
-sound.play();    
+const backGroundMusic = new THREE.Audio(AudioManager.audioManager.audioListener);
+backGroundMusic.setBuffer(AudioManager.audioManager.soundLibrary['carnivalMusic']);
+backGroundMusic.setLoop(true);
+backGroundMusic.setVolume(0.3);
+backGroundMusic.play();    

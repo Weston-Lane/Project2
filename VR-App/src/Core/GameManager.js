@@ -1,9 +1,11 @@
 import * as Objects from '../Objects/Objects'
 import { engine } from './Engine';
+
 class GameManager
 {
     constructor()
     {
+        
         /** @type {number} */
         this.score = 0;
         /** @type {Record<string, WorldUI} */
@@ -74,7 +76,7 @@ class GameManager
         });
         this.score = 0;
         this.targetCollection.RemoveAllTargets();
-        
+
         this.targetCollection.currTargets = 0;
         this.isPlaying = true;
         this.startTime = engine.timer.getElapsed();
@@ -95,7 +97,14 @@ class GameManager
         
         this.targetCollection = new Objects.TargetCollection();
         this.projectileSpawner = new Objects.ProjectileSpawner();
-        
+        const projectileSpawner1 = new Objects.ProjectileSpawner();
+        projectileSpawner1.isOn = false;
+        projectileSpawner1.spawnTime = 20;
+        projectileSpawner1.spawnPos.x -= projectileSpawner1.cloneOffset;
+        const projectileSpawner2 = new Objects.ProjectileSpawner();
+        projectileSpawner2.isOn = false;
+        projectileSpawner2.spawnTime = 60;
+        projectileSpawner2.spawnPos.x += projectileSpawner2.cloneOffset;
     }
     
 }

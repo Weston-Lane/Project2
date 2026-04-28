@@ -21,6 +21,13 @@ export async function LoadSound(audioPath)
 export async function LoadAudio()
 {
     const GUN_FIRE_PATH = GetPath('Audio/gunFire.ogg');
-    audioManager.soundLibrary['gunFire'] = await LoadSound(GUN_FIRE_PATH);
+    audioManager.soundLibrary['gunFire'] = 
+        await LoadSound(GUN_FIRE_PATH);
+    const BACKGROUND_MUSIC = GetPath('Audio/CarnivalMusic.mp3');
+    audioManager.soundLibrary['carnivalMusic'] =
+        await LoadSound(BACKGROUND_MUSIC);
+    const CANNON_SHOT = GetPath('Audio/cannonShot.mp3');
+    audioManager.soundLibrary['cannonShot'] =
+        await LoadSound(CANNON_SHOT);
 
 }
