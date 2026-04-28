@@ -115,7 +115,8 @@ export class Plane extends GameObject
      */
     constructor()
     {
-        const mesh = AssetLoader.AssetCache.models['woodfloor'].clone();
+        
+        const mesh = AssetLoader.AssetCache.models['woodfloor'];
 
         const shape = new CANNON.Plane();
         const body = new CANNON.Body({
@@ -124,10 +125,25 @@ export class Plane extends GameObject
             position: new CANNON.Vec3(0, 0, 0), 
             
         });
-
+        mesh.scale.set(0.3,0.3,0.3);
         body.quaternion.setFromEuler(-Math.PI/2,0,0); //rotate to xz plane
         super(mesh,body);
 
+        this.mesh.traverse((child) => {
+            if (child.isMesh && child.material && child.material.map) {
+                
+                const textures = [
+                    child.material.map,
+                    child.material.normalMap,
+                    child.material.roughnessMap,
+                ];
+
+                textures.forEach(tex =>{
+                    tex.repeat.set(7,7);
+                    tex.needsUpdate = true;
+                });
+            }
+        });
     }
 }
 
@@ -494,6 +510,7 @@ export class TargetCollection extends GameObject
         {
             this.NextTargets();
         }
+
     }
 
     SetAllTargetsPos()

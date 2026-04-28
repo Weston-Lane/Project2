@@ -1,6 +1,7 @@
 import {engine} from './Engine'
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { audioManager } from './AudioManager';
 /**
  * Every GameObject child class will need to pass its mesh and phys body into a super()
  * call in its constructor and OnUpdate
@@ -20,6 +21,9 @@ export class GameObject
         this.body = body;
         /** @type {boolean} */
         this.isActive = true;
+
+        /** @type {} */
+        this.audio = new THREE.Audio(audioManager.audioListener);
 
         if(mesh)
         {
@@ -84,7 +88,6 @@ export class GameObject
     }
 
     /**
-     * Virtual method to be overridden by child classes.
      * @param {GameObject} other - The object we collided with
      * @param {Object} event - The raw Cannon.js event data
      */
@@ -95,6 +98,8 @@ export class GameObject
 
     /**
      * @param {boolean} isActive
+     * !SETTING AN OBJ ACTIVE AND INACTIVE IN THE SAME FRAME WILL CAUSE COLLIDERS TO DISSAPEAR FOREVER
+     * !DO NOT DO THAT
      */
     SetActive(isActive)
     {

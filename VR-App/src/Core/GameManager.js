@@ -73,9 +73,13 @@ class GameManager
             content: 'Score: 0'
         });
         this.score = 0;
-        this.targetCollection.currTargets = 1;
         this.targetCollection.RemoveAllTargets();
-        this.StartGame();
+        
+        this.targetCollection.currTargets = 0;
+        this.isPlaying = true;
+        this.startTime = engine.timer.getElapsed();
+        this.targetCollection.SetAllTargetsPos();
+        this.UI['timer'].Start();
     }
 
     CreateScene()

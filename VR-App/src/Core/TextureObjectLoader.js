@@ -66,6 +66,18 @@ export async function LoadTextureObjectOBJ(objPath, texturePaths) {
         metalness: 0.1 
     });
 
+    const textures = [
+        material.map,
+        material.normalMap,
+        material.roughnessMap,
+    ];
+
+    
+    textures.forEach(tex =>{
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+    });
+
     objGroup.traverse((child) => {
         if (child.isMesh) {
             child.material = material;
