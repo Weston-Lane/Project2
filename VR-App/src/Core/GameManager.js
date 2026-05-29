@@ -87,13 +87,10 @@ class GameManager
     CreateScene()
     {
         new Objects.Booth();
-        new Objects.Booth1();
-        new Objects.Booth2();
-        new Objects.Booth3();
-        new Objects.Booth4();
+        new Objects.Boardwalk();
         this.player = new Objects.PlayerRig();
         new Objects.HandRight();
-        new Objects.Plane();
+        //new Objects.Plane();
         
         this.targetCollection = new Objects.TargetCollection();
         this.projectileSpawner = new Objects.ProjectileSpawner();

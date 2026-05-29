@@ -3,6 +3,7 @@ import * as CANNON from 'cannon-es'
 import {engine} from '../Core/Engine.js'
 import { gameManager } from '../Core/GameManager.js';
 import { GameObject } from '../Core/GameObject.js';
+import { Light } from '../Core/GameObject.js';
 import * as AssetLoader from '../Core/TextureObjectLoader.js';
 import { DEG2RAD, RAD2DEG } from 'three/src/math/MathUtils.js';
 import { OculusHandPointerModel } from 'three/examples/jsm/Addons.js';
@@ -21,86 +22,50 @@ export class Booth extends GameObject {
     constructor()
     {
         const mesh = AssetLoader.AssetCache.models['booth'].clone();
-        mesh.scale.set(0.4,0.2,0.2);
+        mesh.scale.set(1.2,1,1);
 
         super(mesh, undefined);
         this.body.type = CANNON.Body.STATIC;
-        this.body.position.set(0,2.5,-8);
+        this.body.position.set(0,2.5, -8);
         this.body.quaternion.setFromEuler(0,DEG2RAD * 180, 0);
+
+        const lightColors = [
+            0x228899,
+            0x889922,
+            0x882299,
+            0x222299,
+            0x229922,
+            0x882222,
+        ];
+        let colInd = 0;
+        let lightColor = new THREE.Color(0x228899);
+        const lightsRoot = this.mesh.getObjectByName("LightWire");
+        lightsRoot.children.forEach((childLight) => {
+            
+            const lightObj = new Light({
+                light: new THREE.PointLight(lightColors[colInd], 15, 5, 1)
+            });
+            lightObj.AttachTo(childLight);
+            colInd += 1;
+        });
         
     }
     
 }
-
-export class Booth1 extends GameObject {
+export class Boardwalk extends GameObject {
     
     /**
      * @constructor
      */
     constructor()
     {
-        const mesh = AssetLoader.AssetCache.models['booth_blue'].clone();
-        mesh.scale.set(0.4,0.2,0.2);
+        const mesh = AssetLoader.AssetCache.models['boardwalk'].clone();
+        mesh.scale.set(1,1,1) ;
 
         super(mesh, undefined);
         this.body.type = CANNON.Body.STATIC;
-        this.body.position.set(8.5,2.5,0.5);
-        this.body.quaternion.setFromEuler(0,DEG2RAD * 90, 0);
-        
-    }
-    
-}
-
-export class Booth2 extends GameObject {
-    
-    /**
-     * @constructor
-     */
-    constructor()
-    {
-        const mesh = AssetLoader.AssetCache.models['booth_forest_green'].clone();
-        mesh.scale.set(0.4,0.2,0.2);
-
-        super(mesh, undefined);
-        this.body.type = CANNON.Body.STATIC;
-        this.body.position.set(-8.5,2.5,0.5);
-        this.body.quaternion.setFromEuler(0,DEG2RAD * 270, 0);
-        
-    }
-    
-}
-export class Booth3 extends GameObject {
-    
-    /**
-     * @constructor
-     */
-    constructor()
-    {
-        const mesh = AssetLoader.AssetCache.models['booth'].clone();
-        mesh.scale.set(0.4,0.2,0.2);
-
-        super(mesh, undefined);
-        this.body.type = CANNON.Body.STATIC;
-        this.body.position.set(-13,2.5,-8);
-        this.body.quaternion.setFromEuler(0,DEG2RAD * 45, 0);
-        
-    }
-    
-}
-export class Booth4 extends GameObject {
-    
-    /**
-     * @constructor
-     */
-    constructor()
-    {
-        const mesh = AssetLoader.AssetCache.models['booth'].clone();
-        mesh.scale.set(0.4,0.2,0.2);
-
-        super(mesh, undefined);
-        this.body.type = CANNON.Body.STATIC;
-        this.body.position.set(13,2.5,-8);
-        this.body.quaternion.setFromEuler(0,DEG2RAD * -45, 0);
+        this.body.position.set(0,0.5,0);
+        this.body.quaternion.setFromEuler(0,DEG2RAD * 180, 0);
         
     }
     
@@ -117,7 +82,7 @@ export class Plane extends GameObject
     constructor()
     {
         
-        const mesh = AssetLoader.AssetCache.models['woodfloor'];
+        const mesh = AssetLoader.AssetCache.models['woodfloor'].clone();
 
         const shape = new CANNON.Plane();
         const body = new CANNON.Body({
@@ -456,6 +421,26 @@ export class Target extends GameObject
         this.body.position.set(0,0,0);
         const rads = THREE.MathUtils.degToRad(90);
         this.body.quaternion.setFromEuler(rads,0,0);
+        
+        const lightMesh = this.mesh.getObjectByName("LightAnchor");
+        this.topLightColor = new THREE.Color().setRGB(0.8,0.1,0.2);
+        this.topLightPower = 3;
+        this.topLightDist = 0.5;
+        this.topLightFalloff = 1;
+        this.topLight = new Light({
+            light: new THREE.PointLight(this.topLightColor, this.topLightPower, this.topLightDist, this.topLightFalloff)
+        });
+        this.topLight.AttachTo(lightMesh);
+
+        const targetLightMesh = this.mesh.getObjectByName("TargetLightAnchor");
+        this.lightColor = new THREE.Color().setRGB(1,1,1);
+        this.lightPower = 1;
+        this.lightDist = 7;
+        this.lightFalloff = 5;
+        this.light = new Light({
+            light: new THREE.PointLight(this.lightColor, this.lightPower, this.lightDist, this.lightFalloff)
+        });
+        this.light.AttachTo(targetLightMesh);
         
     }
 
@@ -883,7 +868,7 @@ export class PlayerRig extends GameObject
         const mat = new THREE.MeshBasicMaterial({
             color: 0x999999,
             side: THREE.DoubleSide, 
-            wireframe: true // Highly recommend wireframe for this test so you aren't blinded!
+            wireframe: true 
         });
         const mesh = new THREE.Mesh(geo, mat);
 
@@ -891,7 +876,7 @@ export class PlayerRig extends GameObject
         const body = new CANNON.Body(
             {
                 mass: 0, 
-                type: CANNON.Body.KINEMATIC, // Ignores gravity, move manually
+                type: CANNON.Body.KINEMATIC, 
                 shape: headShape,
                 position: new CANNON.Vec3(0,0,0)
             });

@@ -93,7 +93,6 @@ class Engine {
             this.HandleCollisionEnter(event);
         });
 
-
     }
 
     /**
@@ -131,18 +130,18 @@ class Engine {
 
         //***************** SKYBOX *********************************
         const textureLoader = new THREE.TextureLoader();
-        textureLoader.load(AssetLoader.GetPath('clearSky.png'), (texture) => {
+        textureLoader.load(AssetLoader.GetPath('qwantani_moonrise_2k.png'), (texture) => {
             
             texture.mapping = THREE.EquirectangularReflectionMapping;
+            texture.colorSpace = THREE.SRGBColorSpace;
             this.scene.background = texture;
             this.scene.environment = texture; 
+             
         });
         //**************************************************
 
         this.camera.position.z = 0;
         this.camera.position.y = 2;
-
-        this.scene.add(new THREE.AmbientLight(0x000000, 1));
 
         console.log("Engine Initialized");
 
@@ -252,15 +251,6 @@ class Engine {
 
         if(objB && objA)
         {
-            // Catch the imposter!
-            if(typeof objB.OnCollisionEnter !== 'function') {
-                console.error("IMPOSTER CAUGHT! objB is:", objB);
-                return;
-            }
-            if(typeof objA.OnCollisionEnter !== 'function') {
-                console.error("IMPOSTER CAUGHT! objA is:", objA);
-                return;
-            }
             
             objB?.OnCollisionEnter(objA, event);
             objA?.OnCollisionEnter(objB, event);
@@ -268,4 +258,5 @@ class Engine {
         
     }
 }
+
 export const engine = new Engine();

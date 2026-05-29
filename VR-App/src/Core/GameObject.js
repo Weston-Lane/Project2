@@ -136,3 +136,40 @@ export class GameObject
         this.mesh = new THREE.Mesh(this.mesh.geometry, mat);
     }
 }
+
+export class Light{
+
+    constructor({light = new THREE.PointLight(0xffffff, 10, 10, 10)} = {})
+    {
+        new THREE.SphereGeometry({
+            radius: 1,
+        });
+        const geo = new THREE.SphereGeometry(2);
+        const mat = new THREE.MeshStandardMaterial({
+                    color: 0x777777,
+                    wireframe: true });
+        this.debugMesh = new THREE.Mesh(geo, mat);
+        this.debugMesh.visible = false;
+        this.light = light;
+
+    }
+
+    /** @param {boolean} set*/
+    ShowOutline(set)
+    {
+        this.debugMesh.visible = set;
+    }
+
+    /** @param {THREE.Vector3} to */
+    Move(to)
+    {
+        this.debugMesh.position.copy(to);
+        this.light.position.copy(to);
+    }
+
+    AttachTo(obj)
+    {
+        obj.add(this.light);
+        obj.add(this.debugMesh);
+    }
+}

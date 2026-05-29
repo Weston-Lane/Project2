@@ -21,15 +21,9 @@ export async function LoadAssets()
     const BULLET_MODEL = AssetLoader.GetPath('models/bullet.glb');
     AssetLoader.AssetCache.models['bullet'] =
         await AssetLoader.LoadTextureObjectGLB(BULLET_MODEL);
-    const BOOTH_MODEL = AssetLoader.GetPath('models/ActualBooth.glb');
+    const BOOTH_MODEL = AssetLoader.GetPath('models/BoothRevamp.glb');
     AssetLoader.AssetCache.models['booth'] =
         await AssetLoader.LoadTextureObjectGLB(BOOTH_MODEL);
-    const BOOTH1_MODEL = AssetLoader.GetPath('models/ActualBooth_blue.glb');
-    AssetLoader.AssetCache.models['booth_blue'] =
-        await AssetLoader.LoadTextureObjectGLB(BOOTH1_MODEL);
-    const BOOTH2_MODEL = AssetLoader.GetPath('models/ActualBooth_forest_green.glb');
-    AssetLoader.AssetCache.models['booth_forest_green'] =
-        await AssetLoader.LoadTextureObjectGLB(BOOTH2_MODEL);
     const SPIKE_BALL = AssetLoader.GetPath('models/Spikey.glb');
     AssetLoader.AssetCache.models['spike_ball'] =
         await AssetLoader.LoadTextureObjectGLB(SPIKE_BALL);
@@ -40,4 +34,7 @@ export async function LoadAssets()
             normal: AssetLoader.GetPath('models/Textures/agedplanks1-bl/agedplanks1-normal4-ogl.png'),
             roughness: AssetLoader.GetPath('models/Textures/agedplanks1-bl/agedplanks1-roughness.png')
         });
+    const BOARDWALK = AssetLoader.GetPath('models/Boardwalk.glb');
+    AssetLoader.AssetCache.models['boardwalk'] =
+        await AssetLoader.LoadTextureObjectGLB(BOARDWALK);
 }
