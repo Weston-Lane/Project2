@@ -107,27 +107,13 @@ export class GameObject
         if(!isActive)
         {
             this.mesh.visible = false;
-            this.body.sleep();
-
-            this.body.velocity.set(0,0,0);
-            this.body.angularVelocity.set(0,0,0);
-
-            this.body.collisionFilterGroup = 0;
-            this.body.collisionFilterMask = 0;
-
             engine.RemoveBody(this.body);
 
         }
         else
         {
             this.mesh.visible = true;
-
-            this.body.collisionFilterGroup = 1;
-            this.body.collisionFilterMask = -1;
-
             engine.physicsWorld.addBody(this.body);
-
-            this.body.wakeUp();
         }
     }
 

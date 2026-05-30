@@ -60,11 +60,11 @@ export class Boardwalk extends GameObject {
     constructor()
     {
         const mesh = AssetLoader.AssetCache.models['boardwalk'].clone();
-        mesh.scale.set(1,1,1) ;
+        mesh.scale.set(1,1,1);
 
         super(mesh, undefined);
         this.body.type = CANNON.Body.STATIC;
-        this.body.position.set(0,0.5,0);
+        this.body.position.set(0,2.5,0);
         this.body.quaternion.setFromEuler(0,DEG2RAD * 180, 0);
         
     }
