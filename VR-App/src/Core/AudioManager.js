@@ -17,7 +17,6 @@ class AudioManager
     {
         this.cam = engine.renderer.xr.getCamera();
         this.cam.add(this.audioListener); 
-
     }
 }
 

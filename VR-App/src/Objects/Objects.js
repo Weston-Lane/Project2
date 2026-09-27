@@ -30,7 +30,7 @@ export class Booth extends GameObject {
         this.body.quaternion.setFromEuler(0,DEG2RAD * 180, 0);
 
         const lightColors = [
-            0x228899,
+            0x228899, 
             0x889922,
             0x882299,
             0x222299,
@@ -67,7 +67,10 @@ export class Boardwalk extends GameObject {
         this.body.position.set(0,2.5,0);
         this.body.quaternion.setFromEuler(0,DEG2RAD * 180, 0);
         
-    }
+        const floor = this.mesh.getObjectByName("BoardFloor");
+
+    };
+    
     
 }
 
@@ -153,7 +156,7 @@ export class UserProjectile extends GameObject
         this.tarDir = new CANNON.Vec3(0,0,0);
         
         /** @type {number} */
-        this.speed = 10;
+        this.speed = 30;
         
         /** @type {number} */
         this.totTime = 0;
@@ -474,13 +477,14 @@ export class TargetCollection extends GameObject
         /** @type{Target[]} */
         this.targets = []
 
-        this.targetNum = 12;
+        //TODO: make this relative to the size of the booth
+        this.targetNum = 12; 
 
         this.startingPos = new CANNON.Vec3(-5, 3, -10);
 
         this.offsetXScale = 2;
         this.offsetYScale = -1.5;
-        for(let i = 0; i<this.targetNum; i++)
+        for(let i = 0; i < this.targetNum; i++)
         {
             const target = new Target();
             target.SetActive(false);
@@ -549,9 +553,9 @@ export class TargetCollection extends GameObject
 
     RemoveAllTargets()
     {
-        this.targets.forEach(target =>{
+        this.targets.forEach(target => {
             target.SetActive(false);
-        })
+        });
     }
 
 
@@ -899,7 +903,6 @@ export class PlayerRig extends GameObject
         /** @type {THREE.Vector3} */
         this.hold = new THREE.Vector3(0,0,0);
 
-        // 1. Create a variable to hold the hardware data
         /** @type {Gamepad | null} */
         this.gamepad = null;
 
@@ -909,12 +912,6 @@ export class PlayerRig extends GameObject
             }
         });
 
-        // 3. Snap Turn Settings
-        /** @type {boolean} */
-        this.hasSnapped = false;
-        
-        /** @type {number} */
-        this.snapAngle = THREE.MathUtils.degToRad(45); // 45 degree increments
     }
 
     OnUpdate()
@@ -926,7 +923,6 @@ export class PlayerRig extends GameObject
 
         this.mesh.position.copy(this.hold);
 
-        //this.HandleTurn();
     }
 
     OnCollisionEnter(other, event)
@@ -936,11 +932,6 @@ export class PlayerRig extends GameObject
             gameManager.LoseGame();
         }
         
-    }
-
-    HandleTurn()
-    {
-        //not working
     }
     
 }
